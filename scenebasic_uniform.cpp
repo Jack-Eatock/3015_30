@@ -15,8 +15,6 @@ using glm::mat4;
 
 SceneBasic_Uniform::SceneBasic_Uniform() : torus(0.7f, 0.3f, 30, 30) {}
 
-
-
 void SceneBasic_Uniform::initScene()
 {
     compile();
@@ -26,10 +24,16 @@ void SceneBasic_Uniform::initScene()
 	model = glm::rotate(model, glm::radians(-35.0f), vec3(1.0f, 0.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(15.0f), vec3(0.0f, 1.0f, 0.0f));
 	projection = mat4(1.0f);
-	prog.setUniform("LightPosition", view * glm::vec4(5.0f, 5.0f, 2.0f, 1.0f));
-	prog.setUniform("Ld", vec3(1.0f, 1.0f, 1.0f));
-	prog.setUniform("Kd", vec3(0.2f, 0.55f,.9f));
 
+	prog.setUniform("Light.Position", view * glm::vec4(5.0f, 5.0f, 2.0f, 1.0f));
+	prog.setUniform("Light.Diffuse", vec3(1.0f, 1.0f, 1.0f));
+	prog.setUniform("Light.Specular", vec3(1.0f, 1.0f, 1.0f));
+	prog.setUniform("Light.Ambient", vec3(.4f, .4f, .4f));
+
+	prog.setUniform("Material.Diffuse", vec3(0.2f, 0.55f,.9f));
+	prog.setUniform("Material.Ambient", vec3(0.2f, 0.55f, .9f));
+	prog.setUniform("Material.Specular", vec3(0.8f, 0.8f, .8f));
+	prog.setUniform("Material.Shininess", 100.0f);
 }
 
 void SceneBasic_Uniform::compile()
@@ -70,5 +74,5 @@ void SceneBasic_Uniform::setMatrices()
 	mat4 mv = view*model;
 	prog.setUniform("ModelViewMatrix", mv);
 	prog.setUniform("NormalMatrix", glm::mat3(vec3(mv[0]), vec3(mv[1]), vec3(mv[2])));
-	prog.setUniform("MVP", projection*mv);
+	prog.setUniform("ModelViewPerspective", projection*mv);
 }

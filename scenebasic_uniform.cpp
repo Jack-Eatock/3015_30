@@ -4,6 +4,8 @@
 #include <string>
 using std::string;
 
+#include <sstream>
+
 #include <iostream>
 using std::cerr;
 using std::endl;
@@ -13,7 +15,7 @@ using std::endl;
 using glm::vec3;
 using glm::mat4;
 
-SceneBasic_Uniform::SceneBasic_Uniform() : torus(0.7f, 0.3f, 30, 30) {}
+SceneBasic_Uniform::SceneBasic_Uniform() : torus(0.7f, 0.3f, 50, 50) {}
 
 void SceneBasic_Uniform::initScene()
 {
@@ -23,17 +25,27 @@ void SceneBasic_Uniform::initScene()
 	view = glm::lookAt(vec3(0.0f, 0.0f, 2.0f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f,1.0f,0.0f));
 	model = glm::rotate(model, glm::radians(-35.0f), vec3(1.0f, 0.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(15.0f), vec3(0.0f, 1.0f, 0.0f));
+
 	projection = mat4(1.0f);
 
-	prog.setUniform("Light.Position", view * glm::vec4(5.0f, 5.0f, 2.0f, 1.0f));
-	prog.setUniform("Light.Diffuse", vec3(1.0f, 1.0f, 1.0f));
-	prog.setUniform("Light.Specular", vec3(1.0f, 1.0f, 1.0f));
-	prog.setUniform("Light.Ambient", vec3(.4f, .4f, .4f));
+	float x, z;
+	for (int i = 0; i < 3; i++) {
+		std::stringstream name;
+		name << "Lights[" << i << "].Position";
+		x = 2.0f * cosf((glm::two_pi<float>() / 3) * i);
+		z = 2.0f * sinf((glm::two_pi<float>() / 3) * i);
+		prog.setUniform(name.str().c_str(), view * glm::vec4(x,1.2f, z + 1.0f, 1.0f));
+	}
+	
+	prog.setUniform("Lights[0].Colour", vec3(0.0f, 0.0f, 0.8f));
+	prog.setUniform("Lights[1].Colour", vec3(0.0f, 0.8f, 0.0f));
+	prog.setUniform("Lights[2].Colour", vec3(0.8f, 0.0f, 0.0f));
 
-	prog.setUniform("Material.Diffuse", vec3(0.2f, 0.55f,.9f));
-	prog.setUniform("Material.Ambient", vec3(0.2f, 0.55f, .9f));
-	prog.setUniform("Material.Specular", vec3(0.8f, 0.8f, .8f));
-	prog.setUniform("Material.Shininess", 100.0f);
+	prog.setUniform("Lights[0].AmbientColour", vec3(0.0f, 0.0f, 0.2f));
+	prog.setUniform("Lights[1].AmbientColour", vec3(0.0f, 0.2f, 0.0f));
+	prog.setUniform("Lights[2].AmbientColour", vec3(0.2f, 0.0f, 0.0f));
+
+
 }
 
 void SceneBasic_Uniform::compile()
@@ -57,8 +69,16 @@ void SceneBasic_Uniform::update( float t )
 void SceneBasic_Uniform::render()
 {
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+	prog.setUniform("Material.Diffuse", vec3(0.2f, 0.55f, .9f));
+	prog.setUniform("Material.Ambient", vec3(0.2f, 0.55f, .9f));
+	prog.setUniform("Material.Specular", vec3(0.8f, 0.8f, .8f));
+	prog.setUniform("Material.Shininess", 100.0f);
+
 	setMatrices();
 	torus.render();
+
+
 }
 
 void SceneBasic_Uniform::resize(int w, int h)

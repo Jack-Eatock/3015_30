@@ -5,18 +5,21 @@
 
 #include <glad/glad.h>
 #include "helper/glslprogram.h"
+#include <glm/gtc/matrix_transform.hpp>
+#include "helper/torus.h"
+#include <glm/glm.hpp>
 
 class SceneBasic_Uniform : public Scene
 {
 private:
-    GLuint vaoHandle;
     GLSLProgram prog;
-    float angle;
-
     void compile();
+    void setMatrices();
+    Torus torus;
 
 public:
     SceneBasic_Uniform();
+
 
     void initScene();
     void update( float t );

@@ -7,6 +7,7 @@
 #include "helper/glslprogram.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include "helper/torus.h"
+#include "helper/teapot.h"
 #include <glm/glm.hpp>
 #include "helper/plane.h"
 #include "helper/objmesh.h"
@@ -19,7 +20,10 @@ private:
     void setMatrices();
     Plane plane;
     std::unique_ptr<ObjMesh> mesh;
-    //Torus torus;
+    Teapot teapot;
+    Torus torus;
+    float tPrev;
+    float angle;
 
 public:
     SceneBasic_Uniform();

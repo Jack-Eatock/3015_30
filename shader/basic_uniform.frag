@@ -5,6 +5,10 @@ layout (location = 0) out vec4 FragColor;
 in vec3 Position;
 in vec3 Normal;
 
+// Toon Shader
+const int levels = 4;
+const float scaleFactor = 1.0/levels;
+
 
 // Light Uniforms
 uniform struct SpotLightInfo
@@ -41,7 +45,7 @@ vec3 BlinnPhong(LightInfo Light, vec3 position, vec3 normal)
 
     // Diffuse
     float lightDirDotNormal = max(dot(lightDirection, normal), 0.0);
-    vec3 diffuse = Material.Diffuse * lightDirDotNormal;
+    vec3 diffuse = Material.Diffuse * floor(lightDirDotNormal * levels) * scaleFactor;
 
     // Ambient
     vec3 ambient = Light.AmbientColour * Material.Ambient;
@@ -73,7 +77,7 @@ vec3 BlinnPhongSpot(SpotLightInfo Light, vec3 position, vec3 normal)
 
     // Diffuse
     float lightDirDotNormal = max(dot(lightDirection, normal), 0.0);
-    vec3 diffuse = Material.Diffuse * lightDirDotNormal;
+    vec3 diffuse = Material.Diffuse * floor(lightDirDotNormal * levels) * scaleFactor;
 
     // Ambient
     vec3 ambient = Light.AmbientColour * Material.Ambient;

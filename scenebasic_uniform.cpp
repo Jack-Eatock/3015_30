@@ -38,27 +38,34 @@ void SceneBasic_Uniform::initScene()
 
 	projection = mat4(1.0f);
 
+	// Spot Light
 	prog.setUniform("SpotLight.Colour", vec3(.9f));
 	prog.setUniform("SpotLight.AmbientColour", vec3(.5f));
 	prog.setUniform("SpotLight.Exponent", 100.0f);
 	prog.setUniform("SpotLight.Cuttoff", glm::radians(15.0f));
 
-	//float x, z;
-	//for (int i = 0; i < 3; i++) {
-	//	std::stringstream name;
-	//	name << "Lights[" << i << "].Position";
-	//	x = 2.0f * cosf((glm::two_pi<float>() / 3) * i);
-	//	z = 2.0f * sinf((glm::two_pi<float>() / 3) * i);
-	//	prog.setUniform(name.str().c_str(), view * glm::vec4(x,1.2f, z + 1.0f, 1.0f));
-	//}
-	//
-	//prog.setUniform("Lights[0].Colour", vec3(0.0f, 0.0f, 0.8f));
-	//prog.setUniform("Lights[1].Colour", vec3(0.0f, 0.8f, 0.0f));
-	//prog.setUniform("Lights[2].Colour", vec3(0.8f, 0.0f, 0.0f));
+	// Lights
+	float x, z;
+	for (int i = 0; i < 3; i++) {
+		std::stringstream name;
+		name << "Lights[" << i << "].Position";
+		x = 2.0f * cosf((glm::two_pi<float>() / 3) * i);
+		z = 2.0f * sinf((glm::two_pi<float>() / 3) * i);
+		prog.setUniform(name.str().c_str(), view * glm::vec4(x,1.2f, z + 1.0f, 1.0f));
+	}
+	
+	prog.setUniform("Lights[0].Colour", vec3(0.0f, 0.0f, 0.8f));
+	prog.setUniform("Lights[1].Colour", vec3(0.0f, 0.8f, 0.0f));
+	prog.setUniform("Lights[2].Colour", vec3(0.8f, 0.0f, 0.0f));
 
-	//prog.setUniform("Lights[0].AmbientColour", vec3(0.0f, 0.0f, 0.2f));
-	//prog.setUniform("Lights[1].AmbientColour", vec3(0.0f, 0.2f, 0.0f));
-	//prog.setUniform("Lights[2].AmbientColour", vec3(0.2f, 0.0f, 0.0f));
+	prog.setUniform("Lights[0].AmbientColour", vec3(0.0f, 0.0f, 0.2f));
+	prog.setUniform("Lights[1].AmbientColour", vec3(0.0f, 0.2f, 0.0f));
+	prog.setUniform("Lights[2].AmbientColour", vec3(0.2f, 0.0f, 0.0f));
+
+	// Fog
+	prog.setUniform("Fog.MaxDist", 15.0f);
+	prog.setUniform("Fog.MinDist", 1.0f);
+	prog.setUniform("Fog.Color", vec3(0.5f, 0.5f, 0.5f));
 }
 
 void SceneBasic_Uniform::compile()

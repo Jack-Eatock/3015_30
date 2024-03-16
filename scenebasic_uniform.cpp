@@ -11,6 +11,7 @@ using std::cerr;
 using std::endl;
 
 #include "helper/glutils.h"
+#include "helper/texture.h"
 
 using glm::vec3;
 using glm::vec4;
@@ -21,9 +22,10 @@ SceneBasic_Uniform::SceneBasic_Uniform() :
 	tPrev(0),
 	plane(50.0f, 50.0f, 1, 1), 
 	teapot(14, glm::mat4(1.0f)), 
-	torus(1.75f * .75, .4f, 50,50)
+	torus(1.75f * .75, .4f, 50,50),
+	cube()
 {
-	//mesh = ObjMesh::load("media/pig_triangulated.obj", true);
+	mesh = ObjMesh::load("media/Boat.obj", true);
 }
 
 void SceneBasic_Uniform::initScene()
@@ -32,11 +34,11 @@ void SceneBasic_Uniform::initScene()
 	glEnable(GL_DEPTH_TEST);
 	model = mat4(1.0f);
 	view = glm::lookAt(vec3(5.0f, 5.0f, 7.5f), vec3(0.0f, 0.75f, 0.0f), vec3(0.0f,1.0f,0.0f));
-
-	//model = glm::rotate(model, glm::radians(-35.0f), vec3(1.0f, 0.0f, 0.0f));
-	//model = glm::rotate(model, glm::radians(15.0f), vec3(0.0f, 1.0f, 0.0f));
-
 	projection = mat4(1.0f);
+
+	// Texture
+	textID = Texture::loadTexture("media/texture/Pallete.png");
+	glActiveTexture(GL_TEXTURE0);
 
 	// Spot Light
 	prog.setUniform("SpotLight.Colour", vec3(.9f));
@@ -63,9 +65,11 @@ void SceneBasic_Uniform::initScene()
 	prog.setUniform("Lights[2].AmbientColour", vec3(0.2f, 0.0f, 0.0f));
 
 	// Fog
-	prog.setUniform("Fog.MaxDist", 15.0f);
+	prog.setUniform("Fog.MaxDist", 30.0f);
 	prog.setUniform("Fog.MinDist", 1.0f);
 	prog.setUniform("Fog.Color", vec3(0.5f, 0.5f, 0.5f));
+
+
 }
 
 void SceneBasic_Uniform::compile()
@@ -103,7 +107,9 @@ void SceneBasic_Uniform::render()
 	prog.setUniform("SpotLight.Direction", normalMatrix * vec3(-lightPos));
 
 
-	// teaPot
+	// Boat
+
+	glBindTexture(GL_TEXTURE_2D, textID);
 
 	prog.setUniform("Material.Diffuse", vec3(0.2f, 0.55f, .9f));
 	prog.setUniform("Material.Specular", vec3(0.95f, 0.95f, .95f));
@@ -111,11 +117,13 @@ void SceneBasic_Uniform::render()
 	prog.setUniform("Material.Shininess", 100.0f);
 
 	model = mat4(1.0f);
-	model = glm::translate(model, vec3(0.0f, .0f, -2.0f));
-	model = glm::rotate(model, glm::radians(45.0f), vec3(0.0f, 1.0f, 0.0f));
-	model = glm::rotate(model, glm::radians(-90.0f), vec3(1.0f, 0.0f, 0.0f));
+	model = glm::translate(model, vec3(-5.0f, 9.5f, -5.0f));
+	model = glm::rotate(model, glm::radians(110.0f), vec3(0.0f, 1.0f, 0.0f));
+	model = glm::rotate(model, glm::radians(0.0f), vec3(1.0f, 0.0f, 0.0f));
 	setMatrices();
-	teapot.render();
+	mesh->render();
+
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// Torus
 
@@ -132,7 +140,7 @@ void SceneBasic_Uniform::render()
 
 	// Plane
 
-	prog.setUniform("Material.Diffuse", vec3(0.7f, 0.7f, .7f));
+	prog.setUniform("Material.Diffuse", vec3(0.0f, 0.0f, .7f));
 	prog.setUniform("Material.Specular", vec3(0.9f, 0.9f, .9f));
 	prog.setUniform("Material.Ambient", vec3(0.2f, 0.2f, .2f));
 	prog.setUniform("Material.Shininess", 180.0f);

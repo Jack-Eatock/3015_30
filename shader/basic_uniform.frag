@@ -1,9 +1,13 @@
 #version 460
 
-layout (location = 0) out vec4 FragColor;
-
 in vec3 Position;
 in vec3 Normal;
+in vec2 TexCoord;
+
+
+layout (location = 0) out vec4 FragColor;
+layout (binding =0 ) uniform sampler2D Tex1;
+
 
 // Toon Shader
 const int levels = 28;
@@ -45,7 +49,7 @@ uniform struct MaterialInfo
     float Shininess;
 }Material;
 
-vec3 BlinnPhong(LightInfo Light, vec3 position, vec3 normal)
+vec3 BlinnPhong(LightInfo Light, vec3 position, vec3 normal, vec3 texColor)
 {
     // Light direction
     vec3 lightDirection = normalize(vec3(Light.Position.xyz - position));
@@ -53,10 +57,14 @@ vec3 BlinnPhong(LightInfo Light, vec3 position, vec3 normal)
     // Diffuse
     float lightDirDotNormal = max(dot(lightDirection, normal), 0.0);
     vec3 diffuse = Material.Diffuse * lightDirDotNormal; //floor(lightDirDotNormal * levels) * scaleFactor;
+    if (texColor.r > 0 || texColor.g > 0 || texColor.b > 0 )
+        diffuse = texColor * lightDirDotNormal; //floor(lightDirDotNormal * levels) * scaleFactor;
 
     // Ambient
     vec3 ambient = Light.AmbientColour * Material.Ambient;
-
+    if (texColor.r > 0 || texColor.g > 0 || texColor.b > 0)
+         ambient = Light.AmbientColour * texColor;
+        
     // Specular
     vec3 specular = vec3(0.0);
     if (lightDirDotNormal > 0.0)
@@ -70,7 +78,7 @@ vec3 BlinnPhong(LightInfo Light, vec3 position, vec3 normal)
     return ambient + (diffuse + specular) * Light.Colour;
 }
 
-vec3 BlinnPhongSpot(SpotLightInfo Light, vec3 position, vec3 normal)
+vec3 BlinnPhongSpot(SpotLightInfo Light, vec3 position, vec3 normal,  vec3 texColor)
 {
     // Light direction
     vec3 lightDirection = normalize(Light.Position - position);
@@ -84,10 +92,14 @@ vec3 BlinnPhongSpot(SpotLightInfo Light, vec3 position, vec3 normal)
 
     // Diffuse
     float lightDirDotNormal = max(dot(lightDirection, normal), 0.0);
-    vec3 diffuse = Material.Diffuse * floor(lightDirDotNormal * levels) * scaleFactor;
+    vec3 diffuse = Material.Diffuse * lightDirDotNormal; //floor(lightDirDotNormal * levels) * scaleFactor;
+    if (texColor.r > 0 || texColor.g > 0 || texColor.b > 0 )
+        diffuse = texColor * lightDirDotNormal; //floor(lightDirDotNormal * levels) * scaleFactor;
 
     // Ambient
     vec3 ambient = Light.AmbientColour * Material.Ambient;
+    if (texColor.r > 0 || texColor.g > 0 || texColor.b > 0)
+         ambient = Light.AmbientColour * texColor;
 
     // Specular
     vec3 specular = vec3(0.0);
@@ -103,21 +115,23 @@ vec3 BlinnPhongSpot(SpotLightInfo Light, vec3 position, vec3 normal)
 }
 
 
-void main() {
-   
+void main() 
+{
+    // Depth of the scene
+    float dist = abs(Position.z);
+    float fogFactor = (Fog.MaxDist - dist)/(Fog.MaxDist - Fog.MinDist);
+    fogFactor = clamp(fogFactor, 0.0, 1.0);
+    vec3 shadeColor = vec3(0);
 
-   // Depth of the scene
-   float dist = abs(Position.z);
-   float fogFactor = (Fog.MaxDist - dist)/(Fog.MaxDist - Fog.MinDist);
-   fogFactor = clamp(fogFactor, 0.0, 1.0);
-   vec3 shadeColor = vec3(0);
+    // Texture
+    vec3 texColor = texture(Tex1, TexCoord).rgb;
 
     // Calculate each light.
     for (int i = 0; i < Lights.length; i++)
-        shadeColor += BlinnPhong(Lights[i], Position, Normal);
+        shadeColor += BlinnPhong(Lights[i], Position, Normal, texColor);
 
     // Calculate each Spot light
-    //shadeColor += BlinnPhongSpot(SpotLight, Position, Normal);
+    //shadeColor += BlinnPhongSpot(SpotLight, Position, Normal, texColor);
 
     // Mix light and fog
     vec3 Colour = mix(Fog.Color, shadeColor, fogFactor);

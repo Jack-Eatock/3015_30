@@ -2,9 +2,11 @@
 
 layout (location = 0) in vec3 VertexPosition;
 layout (location = 1) in vec3 VertexNormal;
+layout (location = 2) in vec2 VertexTexCoord;
 
 out vec3 Position;
 out vec3 Normal;
+out vec2 TexCoord;
 
 // Matrices
 uniform mat4 ModelViewMatrix;
@@ -20,6 +22,7 @@ void GetCamSpaceValues(out vec3 normal, out vec3 position)
 
 void main()
 {
+    TexCoord = VertexTexCoord;
     GetCamSpaceValues(Normal,Position);
 
     // Setting the vertex pos

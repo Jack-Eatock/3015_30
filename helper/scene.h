@@ -19,6 +19,8 @@ public:
 	    height = h;
 	}
 	
+    virtual void CameraUpdate(glm::vec3 movement) = 0;
+
     /**
       Load textures, initialize shaders, etc.
       */

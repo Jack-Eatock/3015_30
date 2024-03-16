@@ -120,6 +120,7 @@ private:
         while( ! glfwWindowShouldClose(window) && !glfwGetKey(window, GLFW_KEY_ESCAPE) ) {
             GLUtils::checkForOpenGLError(__FILE__,__LINE__);
 			
+            cameraControls(window, scene);
             scene.update(float(glfwGetTime()));
             scene.render();
             glfwSwapBuffers(window);
@@ -129,5 +130,42 @@ private:
 			if (state == GLFW_PRESS)
 				scene.animate(!scene.animating());
         }
+    }
+
+    void cameraControls(GLFWwindow* window, Scene& scene)
+    {
+        glm::vec3 camMovement = glm::vec3(0);
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        {
+            camMovement.y += 1;
+            std::cout << "A" << std::endl;
+        }
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        {
+            camMovement.y -= 1;
+            std::cout << "S" << std::endl;
+        }
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        {
+            camMovement.x -= 1;
+            std::cout << "A" << std::endl;
+        }
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        {
+            camMovement.x += 1;
+            std::cout << "D" << std::endl;
+        }
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        {
+            camMovement.z += 1;
+            std::cout << "Up" << std::endl;
+        }
+        if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+        {
+            camMovement.z -= 1;
+            std::cout << "Down" << std::endl;
+        }
+
+        scene.CameraUpdate(camMovement);
     }
 };

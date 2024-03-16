@@ -17,6 +17,7 @@ using glm::vec3;
 using glm::vec4;
 using glm::mat4;
 using glm::mat3;
+bool forward = true;
 
 SceneBasic_Uniform::SceneBasic_Uniform() :
 	tPrev(0),
@@ -24,7 +25,8 @@ SceneBasic_Uniform::SceneBasic_Uniform() :
 	teapot(14, glm::mat4(1.0f)),
 	torus(1.75f * .75, .4f, 50, 50),
 	cube(),
-	skybox(100.0f)
+	skybox(100.0f),
+	camera()
 {
 	boat = ObjMesh::load("media/Boat.obj", true);
 	water = ObjMesh::load("media/Low Poly Water.obj", true);
@@ -57,15 +59,10 @@ void SceneBasic_Uniform::initScene()
 	prog.setUniform("SpotLight.Cuttoff", glm::radians(15.0f));
 
 	// Lights
-	float x, z;
-	for (int i = 0; i < 3; i++) {
-		std::stringstream name;
-		name << "Lights[" << i << "].Position";
-		x = 2.0f * cosf((glm::two_pi<float>() / 3) * i);
-		z = 2.0f * sinf((glm::two_pi<float>() / 3) * i);
-		prog.setUniform(name.str().c_str(), view * glm::vec4(x,1.2f, z + 1.0f, 1.0f));
-	}
-	
+	prog.setUniform("Lights[0].Position", vec3(0.0f, 0.0f, 0.0f));
+	prog.setUniform("Lights[1].Position", vec3(0.0f, 0.0f, 0.0f));
+	prog.setUniform("Lights[2].Position", vec3(0.0f, 0.0f, 0.0f));
+
 	prog.setUniform("Lights[0].Colour", vec3(.3f));
 	prog.setUniform("Lights[1].Colour", vec3(.3f));
 	prog.setUniform("Lights[2].Colour", vec3(.3f));
@@ -77,7 +74,7 @@ void SceneBasic_Uniform::initScene()
 	// Fog
 	prog.setUniform("Fog.MaxDist", 19.0f);
 	prog.setUniform("Fog.MinDist", 1.0f);
-	prog.setUniform("Fog.Color", vec3(0.14f, 0.1f, 0.1f));
+	prog.setUniform("Fog.Color", vec3(.16f, 0.1f, 0.1f));
 }
 
 void SceneBasic_Uniform::compile()
@@ -96,7 +93,7 @@ void SceneBasic_Uniform::compile()
 		exit(EXIT_FAILURE);
 	}
 }
-bool forward = true;
+
 void SceneBasic_Uniform::update( float t )
 {
 	//update your angle here
@@ -126,8 +123,6 @@ void SceneBasic_Uniform::update( float t )
 		}
 
 	}
-	//std::cout << angle << std::endl;
-	
 }
 
 void SceneBasic_Uniform::render()
@@ -208,8 +203,6 @@ void SceneBasic_Uniform::render()
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-
-
 }
 
 void SceneBasic_Uniform::resize(int w, int h)
@@ -219,6 +212,18 @@ void SceneBasic_Uniform::resize(int w, int h)
     height = h;
 	projection = glm::perspective(glm::radians(70.0f), (float)w / h, .3f, 100.0f);
 }
+
+vec3 Position;
+
+void SceneBasic_Uniform::CameraUpdate(glm::vec3 cameraMovement)
+{
+	camera.Inputs(cameraMovement);
+
+	//Position += cameraMovement;
+	view = glm::lookAt(camera.position, camera.position + camera.Orientation, camera.Up);
+
+}
+
 
 void SceneBasic_Uniform::setMatrices(GLSLProgram &p)
 {

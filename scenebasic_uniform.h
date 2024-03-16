@@ -14,6 +14,7 @@
 #include "helper/cube.h"
 #include "helper/skybox.h"
 
+#include"CamController.h"
 class SceneBasic_Uniform : public Scene
 {
 private:
@@ -30,6 +31,7 @@ private:
     GLuint boatTexture, mossTexture, waterTextureDiffuse, skyBoxTex;
     float waterPos;
     SkyBox skybox;
+    CamController camera;
 
 public:
     SceneBasic_Uniform();
@@ -39,6 +41,8 @@ public:
     void update( float t );
     void render();
     void resize(int, int);
+    void CameraUpdate(glm::vec3 cameraMovement);
+
 };
 
 #endif // SCENEBASIC_UNIFORM_H

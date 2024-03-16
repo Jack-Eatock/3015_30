@@ -20,10 +20,11 @@ using glm::mat3;
 
 SceneBasic_Uniform::SceneBasic_Uniform() :
 	tPrev(0),
-	plane(50.0f, 50.0f, 1, 1), 
-	teapot(14, glm::mat4(1.0f)), 
-	torus(1.75f * .75, .4f, 50,50),
-	cube()
+	plane(50.0f, 50.0f, 1, 1),
+	teapot(14, glm::mat4(1.0f)),
+	torus(1.75f * .75, .4f, 50, 50),
+	cube(),
+	skybox(100.0f)
 {
 	boat = ObjMesh::load("media/Boat.obj", true);
 	water = ObjMesh::load("media/Low Poly Water.obj", true);
@@ -44,9 +45,11 @@ void SceneBasic_Uniform::initScene()
 	projection = mat4(1.0f);
 
 	// Textures
-	textID = Texture::loadTexture("media/texture/Pallete.png");
-	moss = Texture::loadTexture("media/texture/moss.png");
-
+	boatTexture = Texture::loadTexture("media/texture/Pallete.png");
+	mossTexture = Texture::loadTexture("media/texture/moss.png");
+	waterTextureDiffuse = Texture::loadTexture("media/texture/Water/Water_001_COLOR.jpg");
+	skyBoxTex = Texture::loadCubeMap("media/texture/cube/Test/CloudyCrown_Daybreak");
+	
 	// Spot Light
 	prog.setUniform("SpotLight.Colour", vec3(.9f));
 	prog.setUniform("SpotLight.AmbientColour", vec3(.5f));
@@ -74,9 +77,7 @@ void SceneBasic_Uniform::initScene()
 	// Fog
 	prog.setUniform("Fog.MaxDist", 19.0f);
 	prog.setUniform("Fog.MinDist", 1.0f);
-	prog.setUniform("Fog.Color", vec3(0.1f, 0.1f, 0.1f));
-
-
+	prog.setUniform("Fog.Color", vec3(0.14f, 0.1f, 0.1f));
 }
 
 void SceneBasic_Uniform::compile()
@@ -84,6 +85,10 @@ void SceneBasic_Uniform::compile()
 	try {
 		prog.compileShader("shader/basic_uniform.vert");
 		prog.compileShader("shader/basic_uniform.frag");
+		skyProg.compileShader("shader/skybox.vert");
+		skyProg.compileShader("shader/skybox.frag");
+		skyProg.link();
+		skyProg.use();
 		prog.link();
 		prog.use();
 	} catch (GLSLProgramException &e) {
@@ -129,19 +134,29 @@ void SceneBasic_Uniform::render()
 {
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-
 	vec4 lightPos = vec4(10.0f * cos(angle), 10.0f, 10.0f * sin(angle), 1.0f);
 	prog.setUniform("SpotLight.Position", vec3(view*lightPos));
 	mat3 normalMatrix = mat3(vec3(view[0]), vec3(view[1]), vec3(view[2]));
 	prog.setUniform("SpotLight.Direction", normalMatrix * vec3(-lightPos));
 
 
+	// Sky box
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, skyBoxTex);
+	model = mat4(1.0f);
+	setMatrices(skyProg);
+	skybox.render();
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+
+
 	// Boat
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textID);
+	glBindTexture(GL_TEXTURE_2D, boatTexture);
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, moss);
+	glBindTexture(GL_TEXTURE_2D, mossTexture);
 
 	prog.setUniform("Material.Diffuse", vec3(.2f, .2f, .2f));
 	prog.setUniform("Material.Specular", vec3(0.95f, 0.95f, .95f));
@@ -153,7 +168,7 @@ void SceneBasic_Uniform::render()
 	model = glm::rotate(model, glm::radians(110.0f + (angle * 2.0f)), vec3(0.0f, 1.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(-6.0f + (angle * 4.0f) ), vec3(1.0f, 0.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(-.5f + (angle * 1.2f)), vec3(0.0f, 0.0f, 1.0f));
-	setMatrices();
+	setMatrices(prog);
 	boat->render();
 
 	glActiveTexture(GL_TEXTURE0);
@@ -176,16 +191,24 @@ void SceneBasic_Uniform::render()
 
 	// Water
 
-	prog.setUniform("Material.Diffuse", vec3(0.0f, 0.0f, 1.0f));
-	prog.setUniform("Material.Specular", vec3(0.2f, 0.2f, .2f));
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, waterTextureDiffuse);
+
+	prog.setUniform("Material.Diffuse", vec3(0.2, 0.5f, .2f));
+	prog.setUniform("Material.Specular", vec3(0.f, 0.5f, .2f));
 	prog.setUniform("Material.Ambient", vec3(0.05f, 0.05f, .05f));
 	prog.setUniform("Material.Shininess", 40.0f);
 
 	model = mat4(1.0f);
 	model = glm::translate(model, vec3(-5.0f - (25 * waterPos), -0.5f, -5.0f + (4 * waterPos)));
-	setMatrices();
+	setMatrices(prog);
 	
 	water->render();
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+
 
 }
 
@@ -197,10 +220,11 @@ void SceneBasic_Uniform::resize(int w, int h)
 	projection = glm::perspective(glm::radians(70.0f), (float)w / h, .3f, 100.0f);
 }
 
-void SceneBasic_Uniform::setMatrices()
+void SceneBasic_Uniform::setMatrices(GLSLProgram &p)
 {
 	mat4 mv = view*model;
-	prog.setUniform("ModelViewMatrix", mv);
-	prog.setUniform("NormalMatrix", glm::mat3(vec3(mv[0]), vec3(mv[1]), vec3(mv[2])));
-	prog.setUniform("ModelViewPerspective", projection*mv);
+	p.use();
+	p.setUniform("ModelViewMatrix", mv);
+	p.setUniform("NormalMatrix", glm::mat3(vec3(mv[0]), vec3(mv[1]), vec3(mv[2])));
+	p.setUniform("ModelViewPerspective", projection*mv);
 }

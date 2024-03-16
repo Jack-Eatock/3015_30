@@ -12,13 +12,14 @@
 #include "helper/plane.h"
 #include "helper/objmesh.h"
 #include "helper/cube.h"
+#include "helper/skybox.h"
 
 class SceneBasic_Uniform : public Scene
 {
 private:
-    GLSLProgram prog;
+    GLSLProgram prog, skyProg;
     void compile();
-    void setMatrices();
+    void setMatrices(GLSLProgram& p);
     Plane plane;
     std::unique_ptr<ObjMesh> boat, water;
     Teapot teapot;
@@ -26,8 +27,9 @@ private:
     Cube cube;
     float tPrev;
     float angle;
-    GLuint textID, moss;
+    GLuint boatTexture, mossTexture, waterTextureDiffuse, skyBoxTex;
     float waterPos;
+    SkyBox skybox;
 
 public:
     SceneBasic_Uniform();

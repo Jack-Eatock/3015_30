@@ -4,7 +4,6 @@ in vec3 Position;
 in vec3 Normal;
 in vec2 TexCoord;
 
-
 layout (location = 0) out vec4 FragColor;
 layout (binding = 0 ) uniform sampler2D Tex1;
 layout (binding = 1 ) uniform sampler2D Tex2;

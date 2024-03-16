@@ -31,15 +31,21 @@ SceneBasic_Uniform::SceneBasic_Uniform() :
 
 void SceneBasic_Uniform::initScene()
 {
+	glDebugMessageControl(
+		GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_FALSE);
+
+	glDebugMessageControl(
+		GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_ERROR, GL_DONT_CARE, 0, NULL, GL_TRUE);
+
     compile();
 	glEnable(GL_DEPTH_TEST);
 	model = mat4(1.0f);
 	view = glm::lookAt(vec3(5.0f, 5.0f, 7.5f), vec3(0.0f, 0.75f, 0.0f), vec3(0.0f,1.0f,0.0f));
 	projection = mat4(1.0f);
 
-	// Texture
+	// Textures
 	textID = Texture::loadTexture("media/texture/Pallete.png");
-	glActiveTexture(GL_TEXTURE0);
+	moss = Texture::loadTexture("media/texture/moss.png");
 
 	// Spot Light
 	prog.setUniform("SpotLight.Colour", vec3(.9f));
@@ -66,7 +72,7 @@ void SceneBasic_Uniform::initScene()
 	prog.setUniform("Lights[2].AmbientColour", vec3(.05f));
 
 	// Fog
-	prog.setUniform("Fog.MaxDist", 20.0f);
+	prog.setUniform("Fog.MaxDist", 19.0f);
 	prog.setUniform("Fog.MinDist", 1.0f);
 	prog.setUniform("Fog.Color", vec3(0.1f, 0.1f, 0.1f));
 
@@ -115,7 +121,7 @@ void SceneBasic_Uniform::update( float t )
 		}
 
 	}
-	std::cout << angle << std::endl;
+	//std::cout << angle << std::endl;
 	
 }
 
@@ -132,9 +138,12 @@ void SceneBasic_Uniform::render()
 
 	// Boat
 
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, textID);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, moss);
 
-	prog.setUniform("Material.Diffuse", vec3(0.2f, 0.55f, .9f));
+	prog.setUniform("Material.Diffuse", vec3(.2f, .2f, .2f));
 	prog.setUniform("Material.Specular", vec3(0.95f, 0.95f, .95f));
 	prog.setUniform("Material.Ambient", vec3(0.2f * .3f, 0.55f * .3f, .9f * .3f));
 	prog.setUniform("Material.Shininess", 100.0f);
@@ -147,6 +156,9 @@ void SceneBasic_Uniform::render()
 	setMatrices();
 	boat->render();
 
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// Torus
@@ -170,7 +182,7 @@ void SceneBasic_Uniform::render()
 	prog.setUniform("Material.Shininess", 40.0f);
 
 	model = mat4(1.0f);
-	model = glm::translate(model, vec3(-5.0f - (25 * waterPos), -0.5f, -5.0f));
+	model = glm::translate(model, vec3(-5.0f - (25 * waterPos), -0.5f, -5.0f + (4 * waterPos)));
 	setMatrices();
 	
 	water->render();

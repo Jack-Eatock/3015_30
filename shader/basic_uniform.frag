@@ -6,11 +6,11 @@ in vec2 TexCoord;
 
 
 layout (location = 0) out vec4 FragColor;
-layout (binding =0 ) uniform sampler2D Tex1;
-
+layout (binding = 0 ) uniform sampler2D Tex1;
+layout (binding = 1 ) uniform sampler2D Tex2;
 
 // Toon Shader
-const int levels = 28;
+const int levels = 4;
 const float scaleFactor = 1.0/levels;
 
 // Fog
@@ -56,9 +56,10 @@ vec3 BlinnPhong(LightInfo Light, vec3 position, vec3 normal, vec3 texColor)
 
     // Diffuse
     float lightDirDotNormal = max(dot(lightDirection, normal), 0.0);
-    vec3 diffuse = Material.Diffuse * lightDirDotNormal; //floor(lightDirDotNormal * levels) * scaleFactor;
+    vec3 diffuse = Material.Diffuse * floor(lightDirDotNormal * levels) * scaleFactor;
+    //vec3 diffuse = Material.Diffuse * lightDirDotNormal; (No toon shading)
     if (texColor.r > 0 || texColor.g > 0 || texColor.b > 0 )
-        diffuse = texColor * lightDirDotNormal; //floor(lightDirDotNormal * levels) * scaleFactor;
+        diffuse = texColor * floor(lightDirDotNormal * levels) * scaleFactor;
 
     // Ambient
     vec3 ambient = Light.AmbientColour * Material.Ambient;
@@ -92,7 +93,8 @@ vec3 BlinnPhongSpot(SpotLightInfo Light, vec3 position, vec3 normal,  vec3 texCo
 
     // Diffuse
     float lightDirDotNormal = max(dot(lightDirection, normal), 0.0);
-    vec3 diffuse = Material.Diffuse * lightDirDotNormal; //floor(lightDirDotNormal * levels) * scaleFactor;
+    vec3 diffuse = Material.Diffuse * floor(lightDirDotNormal * levels) * scaleFactor;
+    //vec3 diffuse = Material.Diffuse * lightDirDotNormal; (No toon shading)
     if (texColor.r > 0 || texColor.g > 0 || texColor.b > 0 )
         diffuse = texColor * lightDirDotNormal; //floor(lightDirDotNormal * levels) * scaleFactor;
 
@@ -125,6 +127,8 @@ void main()
 
     // Texture
     vec3 texColor = texture(Tex1, TexCoord).rgb;
+    vec4 texColor2 = texture(Tex2, TexCoord);
+    texColor = mix(texColor, texColor2.rgb, texColor2.a);
 
     // Calculate each light.
     for (int i = 0; i < Lights.length; i++)

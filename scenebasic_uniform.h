@@ -26,7 +26,7 @@ private:
     Cube cube;
     float tPrev;
     float angle;
-    GLuint textID;
+    GLuint textID, moss;
     float waterPos;
 
 public:

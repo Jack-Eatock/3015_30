@@ -25,7 +25,8 @@ SceneBasic_Uniform::SceneBasic_Uniform() :
 	torus(1.75f * .75, .4f, 50,50),
 	cube()
 {
-	mesh = ObjMesh::load("media/Boat.obj", true);
+	boat = ObjMesh::load("media/Boat.obj", true);
+	water = ObjMesh::load("media/Low Poly Water.obj", true);
 }
 
 void SceneBasic_Uniform::initScene()
@@ -56,18 +57,18 @@ void SceneBasic_Uniform::initScene()
 		prog.setUniform(name.str().c_str(), view * glm::vec4(x,1.2f, z + 1.0f, 1.0f));
 	}
 	
-	prog.setUniform("Lights[0].Colour", vec3(0.0f, 0.0f, 0.8f));
-	prog.setUniform("Lights[1].Colour", vec3(0.0f, 0.8f, 0.0f));
-	prog.setUniform("Lights[2].Colour", vec3(0.8f, 0.0f, 0.0f));
+	prog.setUniform("Lights[0].Colour", vec3(.3f));
+	prog.setUniform("Lights[1].Colour", vec3(.3f));
+	prog.setUniform("Lights[2].Colour", vec3(.3f));
 
-	prog.setUniform("Lights[0].AmbientColour", vec3(0.0f, 0.0f, 0.2f));
-	prog.setUniform("Lights[1].AmbientColour", vec3(0.0f, 0.2f, 0.0f));
-	prog.setUniform("Lights[2].AmbientColour", vec3(0.2f, 0.0f, 0.0f));
+	prog.setUniform("Lights[0].AmbientColour", vec3(.05f));
+	prog.setUniform("Lights[1].AmbientColour", vec3(.05f));
+	prog.setUniform("Lights[2].AmbientColour", vec3(.05f));
 
 	// Fog
-	prog.setUniform("Fog.MaxDist", 30.0f);
+	prog.setUniform("Fog.MaxDist", 20.0f);
 	prog.setUniform("Fog.MinDist", 1.0f);
-	prog.setUniform("Fog.Color", vec3(0.5f, 0.5f, 0.5f));
+	prog.setUniform("Fog.Color", vec3(0.1f, 0.1f, 0.1f));
 
 
 }
@@ -84,7 +85,7 @@ void SceneBasic_Uniform::compile()
 		exit(EXIT_FAILURE);
 	}
 }
-
+bool forward = true;
 void SceneBasic_Uniform::update( float t )
 {
 	//update your angle here
@@ -92,8 +93,30 @@ void SceneBasic_Uniform::update( float t )
 	if (tPrev == 0.0f) deltaT = 0.0f;
 	tPrev = t;
 
-	angle += 0.25 * deltaT;
-	if (angle > glm::two_pi<float>()) angle -= glm::two_pi<float>();
+	waterPos += .02 * deltaT;
+	
+	if (waterPos >= 1.0f)
+		waterPos = 0.0f;
+	
+	if (forward) 
+	{
+		angle += .2f * deltaT;
+		if (angle >= 1.0f) {
+			angle = 1.0f;
+			forward = false;
+		}
+	}
+	else 
+	{
+		angle -= .2f * deltaT;
+		if (angle <= -1.0f) {
+			angle = -1.0f;
+			forward = true;
+		}
+
+	}
+	std::cout << angle << std::endl;
+	
 }
 
 void SceneBasic_Uniform::render()
@@ -118,37 +141,39 @@ void SceneBasic_Uniform::render()
 
 	model = mat4(1.0f);
 	model = glm::translate(model, vec3(-5.0f, 9.5f, -5.0f));
-	model = glm::rotate(model, glm::radians(110.0f), vec3(0.0f, 1.0f, 0.0f));
-	model = glm::rotate(model, glm::radians(0.0f), vec3(1.0f, 0.0f, 0.0f));
+	model = glm::rotate(model, glm::radians(110.0f + (angle * 2.0f)), vec3(0.0f, 1.0f, 0.0f));
+	model = glm::rotate(model, glm::radians(-6.0f + (angle * 4.0f) ), vec3(1.0f, 0.0f, 0.0f));
+	model = glm::rotate(model, glm::radians(-.5f + (angle * 1.2f)), vec3(0.0f, 0.0f, 1.0f));
 	setMatrices();
-	mesh->render();
+	boat->render();
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// Torus
 
-	prog.setUniform("Material.Diffuse", vec3(0.2f, 0.55f, .9f));
-	prog.setUniform("Material.Specular", vec3(0.95f, 0.95f, .95f));
-	prog.setUniform("Material.Ambient", vec3(0.2f * .3f, 0.55f * .3f, .9f * .3f));
-	prog.setUniform("Material.Shininess", 100.0f);
+	//prog.setUniform("Material.Diffuse", vec3(0.2f, 0.55f, .9f));
+	//prog.setUniform("Material.Specular", vec3(0.95f, 0.95f, .95f));
+	//prog.setUniform("Material.Ambient", vec3(0.2f * .3f, 0.55f * .3f, .9f * .3f));
+	//prog.setUniform("Material.Shininess", 100.0f);
+
+	//model = mat4(1.0f);
+	//model = glm::translate(model, vec3(-1.0f, .75f, 3.0f));
+	//model = glm::rotate(model, glm::radians(-90.0f), vec3(1.0f, 0.0f, 0.0f));
+	//setMatrices();
+	//torus.render();
+
+	// Water
+
+	prog.setUniform("Material.Diffuse", vec3(0.0f, 0.0f, 1.0f));
+	prog.setUniform("Material.Specular", vec3(0.2f, 0.2f, .2f));
+	prog.setUniform("Material.Ambient", vec3(0.05f, 0.05f, .05f));
+	prog.setUniform("Material.Shininess", 40.0f);
 
 	model = mat4(1.0f);
-	model = glm::translate(model, vec3(-1.0f, .75f, 3.0f));
-	model = glm::rotate(model, glm::radians(-90.0f), vec3(1.0f, 0.0f, 0.0f));
+	model = glm::translate(model, vec3(-5.0f - (25 * waterPos), -0.5f, -5.0f));
 	setMatrices();
-	torus.render();
-
-	// Plane
-
-	prog.setUniform("Material.Diffuse", vec3(0.0f, 0.0f, .7f));
-	prog.setUniform("Material.Specular", vec3(0.9f, 0.9f, .9f));
-	prog.setUniform("Material.Ambient", vec3(0.2f, 0.2f, .2f));
-	prog.setUniform("Material.Shininess", 180.0f);
-
-	model = mat4(1.0f);
-
-	setMatrices();
-	plane.render();
+	
+	water->render();
 
 }
 

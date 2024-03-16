@@ -20,13 +20,14 @@ private:
     void compile();
     void setMatrices();
     Plane plane;
-    std::unique_ptr<ObjMesh> mesh;
+    std::unique_ptr<ObjMesh> boat, water;
     Teapot teapot;
     Torus torus;
     Cube cube;
     float tPrev;
     float angle;
     GLuint textID;
+    float waterPos;
 
 public:
     SceneBasic_Uniform();

@@ -59,17 +59,17 @@ void SceneBasic_Uniform::initScene()
 	prog.setUniform("SpotLight.Cuttoff", glm::radians(15.0f));
 
 	// Lights
-	prog.setUniform("Lights[0].Position", vec3(0.0f, 0.0f, 0.0f));
-	prog.setUniform("Lights[1].Position", vec3(0.0f, 0.0f, 0.0f));
-	prog.setUniform("Lights[2].Position", vec3(0.0f, 0.0f, 0.0f));
+	prog.setUniform("Lights[0].Position", vec3(5.0f, 3.0f, 7.5f));
+	prog.setUniform("Lights[1].Position", vec3(9.0f, 5.0f, 16.0f));
+	prog.setUniform("Lights[2].Position", vec3(-9.0f, 5.0f, 7.0f));
 
-	prog.setUniform("Lights[0].Colour", vec3(.3f));
-	prog.setUniform("Lights[1].Colour", vec3(.3f));
-	prog.setUniform("Lights[2].Colour", vec3(.3f));
+	prog.setUniform("Lights[0].Colour", vec3(.7f));
+	prog.setUniform("Lights[1].Colour", vec3(0.1f));
+	prog.setUniform("Lights[2].Colour", vec3(.1f));
 
-	prog.setUniform("Lights[0].AmbientColour", vec3(.05f));
-	prog.setUniform("Lights[1].AmbientColour", vec3(.05f));
-	prog.setUniform("Lights[2].AmbientColour", vec3(.05f));
+	prog.setUniform("Lights[0].AmbientColour", vec3(.1f));
+	prog.setUniform("Lights[1].AmbientColour", vec3(.1f));
+	prog.setUniform("Lights[2].AmbientColour", vec3(.1f));
 
 	// Fog
 	prog.setUniform("Fog.MaxDist", 19.0f);
@@ -129,11 +129,10 @@ void SceneBasic_Uniform::render()
 {
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-	vec4 lightPos = vec4(10.0f * cos(angle), 10.0f, 10.0f * sin(angle), 1.0f);
-	prog.setUniform("SpotLight.Position", vec3(view*lightPos));
-	mat3 normalMatrix = mat3(vec3(view[0]), vec3(view[1]), vec3(view[2]));
-	prog.setUniform("SpotLight.Direction", normalMatrix * vec3(-lightPos));
-
+	//vec4 lightPos = vec4(10.0f * cos(angle), 10.0f, 10.0f * sin(angle), 1.0f);
+	//prog.setUniform("SpotLight.Position", vec3(view*lightPos));
+	//mat3 normalMatrix = mat3(vec3(view[0]), vec3(view[1]), vec3(view[2]));
+	//prog.setUniform("SpotLight.Direction", normalMatrix * vec3(-lightPos));
 
 	// Sky box
 
@@ -143,8 +142,6 @@ void SceneBasic_Uniform::render()
 	setMatrices(skyProg);
 	skybox.render();
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-
-
 
 	// Boat
 
@@ -159,7 +156,7 @@ void SceneBasic_Uniform::render()
 	prog.setUniform("Material.Shininess", 100.0f);
 
 	model = mat4(1.0f);
-	model = glm::translate(model, vec3(-5.0f, 9.5f, -5.0f));
+	model = glm::translate(model, vec3(-5.0f, 9.3f, -5.0f));
 	model = glm::rotate(model, glm::radians(110.0f + (angle * 2.0f)), vec3(0.0f, 1.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(-6.0f + (angle * 4.0f) ), vec3(1.0f, 0.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(-.5f + (angle * 1.2f)), vec3(0.0f, 0.0f, 1.0f));
@@ -171,18 +168,6 @@ void SceneBasic_Uniform::render()
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	// Torus
-
-	//prog.setUniform("Material.Diffuse", vec3(0.2f, 0.55f, .9f));
-	//prog.setUniform("Material.Specular", vec3(0.95f, 0.95f, .95f));
-	//prog.setUniform("Material.Ambient", vec3(0.2f * .3f, 0.55f * .3f, .9f * .3f));
-	//prog.setUniform("Material.Shininess", 100.0f);
-
-	//model = mat4(1.0f);
-	//model = glm::translate(model, vec3(-1.0f, .75f, 3.0f));
-	//model = glm::rotate(model, glm::radians(-90.0f), vec3(1.0f, 0.0f, 0.0f));
-	//setMatrices();
-	//torus.render();
 
 	// Water
 
@@ -192,7 +177,7 @@ void SceneBasic_Uniform::render()
 	prog.setUniform("Material.Diffuse", vec3(0.2, 0.5f, .2f));
 	prog.setUniform("Material.Specular", vec3(0.f, 0.5f, .2f));
 	prog.setUniform("Material.Ambient", vec3(0.05f, 0.05f, .05f));
-	prog.setUniform("Material.Shininess", 40.0f);
+	prog.setUniform("Material.Shininess", 0.0f);
 
 	model = mat4(1.0f);
 	model = glm::translate(model, vec3(-5.0f - (25 * waterPos), -0.5f, -5.0f + (4 * waterPos)));
@@ -232,4 +217,6 @@ void SceneBasic_Uniform::setMatrices(GLSLProgram &p)
 	p.setUniform("ModelViewMatrix", mv);
 	p.setUniform("NormalMatrix", glm::mat3(vec3(mv[0]), vec3(mv[1]), vec3(mv[2])));
 	p.setUniform("ModelViewPerspective", projection*mv);
+
+	p.setUniform("model", model);
 }

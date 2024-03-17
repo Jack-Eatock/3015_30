@@ -1,7 +1,4 @@
 ﻿C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(531,5): warning MSB8028: The intermediate directory (x64\Debug\) contains files shared from another project (Project_Template.vcxproj).  This can lead to incorrect clean and rebuild behavior.
-  CamController.cpp
-  main.cpp
   scenebasic_uniform.cpp
 C:\Users\jacke\Documents\University\Comp3015\30\3015_30\scenebasic_uniform.cpp(104,18): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-  Generating Code...
   Project_Template.vcxproj -> C:\Users\jacke\Documents\University\Comp3015\30\3015_30\x64\Debug\Pirate.exe

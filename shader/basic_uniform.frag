@@ -1,5 +1,6 @@
 #version 460
 
+in vec3 PosRelativeToPerspective;
 in vec3 Position;
 in vec3 Normal;
 in vec2 TexCoord;
@@ -34,7 +35,7 @@ uniform struct SpotLightInfo
 // Light Uniforms
 uniform struct LightInfo
 {
-    vec4 Position;
+    vec3 Position;
     vec3 Colour;
     vec3 AmbientColour;
 }Lights[3];
@@ -56,7 +57,7 @@ vec3 BlinnPhong(LightInfo Light, vec3 position, vec3 normal, vec3 texColor)
     // Diffuse
     float lightDirDotNormal = max(dot(lightDirection, normal), 0.0);
     vec3 diffuse = Material.Diffuse * floor(lightDirDotNormal * levels) * scaleFactor;
-    //vec3 diffuse = Material.Diffuse * lightDirDotNormal; (No toon shading)
+    //vec3 diffuse = Material.Diffuse * lightDirDotNormal;// (No toon shading)
     if (texColor.r > 0 || texColor.g > 0 || texColor.b > 0 )
         diffuse = texColor * floor(lightDirDotNormal * levels) * scaleFactor;
 
@@ -67,7 +68,7 @@ vec3 BlinnPhong(LightInfo Light, vec3 position, vec3 normal, vec3 texColor)
         
     // Specular
     vec3 specular = vec3(0.0);
-    if (lightDirDotNormal > 0.0)
+    if (lightDirDotNormal > 0.0 && Material.Shininess != 0 )
     {
         vec3 dirBackFromCam = normalize(-position.xyz);
         vec3 reflection = reflect(-lightDirection, normal);
@@ -119,7 +120,7 @@ vec3 BlinnPhongSpot(SpotLightInfo Light, vec3 position, vec3 normal,  vec3 texCo
 void main() 
 {
     // Depth of the scene
-    float dist = abs(Position.z);
+    float dist = abs(PosRelativeToPerspective.z);
     float fogFactor = (Fog.MaxDist - dist)/(Fog.MaxDist - Fog.MinDist);
     fogFactor = clamp(fogFactor, 0.0, 1.0);
     vec3 shadeColor = vec3(0);

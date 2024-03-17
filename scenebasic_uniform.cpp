@@ -60,12 +60,12 @@ void SceneBasic_Uniform::initScene()
 
 	// Lights
 	prog.setUniform("Lights[0].Position", vec3(5.0f, 3.0f, 7.5f));
-	prog.setUniform("Lights[1].Position", vec3(9.0f, 5.0f, 16.0f));
-	prog.setUniform("Lights[2].Position", vec3(-9.0f, 5.0f, 7.0f));
+	prog.setUniform("Lights[1].Position", vec3(9.0f, 5.0f, 19.0f));
+	prog.setUniform("Lights[2].Position", vec3(-12.0f, 5.0f, 7.0f));
 
 	prog.setUniform("Lights[0].Colour", vec3(.7f));
-	prog.setUniform("Lights[1].Colour", vec3(0.1f));
-	prog.setUniform("Lights[2].Colour", vec3(.1f));
+	prog.setUniform("Lights[1].Colour", vec3(0.3f));
+	prog.setUniform("Lights[2].Colour", vec3(.3f));
 
 	prog.setUniform("Lights[0].AmbientColour", vec3(.1f));
 	prog.setUniform("Lights[1].AmbientColour", vec3(.1f));
@@ -187,7 +187,6 @@ void SceneBasic_Uniform::render()
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
-
 }
 
 void SceneBasic_Uniform::resize(int w, int h)
@@ -200,9 +199,9 @@ void SceneBasic_Uniform::resize(int w, int h)
 
 vec3 Position;
 
-void SceneBasic_Uniform::CameraUpdate(glm::vec3 cameraMovement)
+void SceneBasic_Uniform::CameraUpdate(glm::vec3 movement, glm::vec2 mouseMovement)
 {
-	camera.Inputs(cameraMovement);
+	camera.Inputs(movement, mouseMovement);
 
 	//Position += cameraMovement;
 	view = glm::lookAt(camera.position, camera.position + camera.Orientation, camera.Up);

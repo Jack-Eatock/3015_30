@@ -41,7 +41,7 @@ public:
     void update( float t );
     void render();
     void resize(int, int);
-    void CameraUpdate(glm::vec3 cameraMovement);
+    void CameraUpdate(glm::vec3 movement, glm::vec2 mouseMovement);
 
 };
 

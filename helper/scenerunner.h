@@ -132,8 +132,12 @@ private:
         }
     }
 
+    bool firstClick = true;
+    glm::vec2 mouseMovement;
+
     void cameraControls(GLFWwindow* window, Scene& scene)
     {
+        mouseMovement = glm::vec2(0.0f, .0f);
         glm::vec3 camMovement = glm::vec3(0);
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         {
@@ -166,6 +170,39 @@ private:
             std::cout << "Down" << std::endl;
         }
 
-        scene.CameraUpdate(camMovement);
+        // Mouse inputs
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+        {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN); // Hides mouse cursor
+
+            // Prevents camera from jumping on the first click
+            if (firstClick)
+            {
+                glfwSetCursorPos(window, (WIN_WIDTH / 2), (WIN_HEIGHT / 2));
+                firstClick = false;
+            }
+
+            // Keeping track of the cursor position
+            double mouseX;
+            double mouseY;
+            glfwGetCursorPos(window, &mouseX, &mouseY);
+
+            // Calculate the movement from the centre of the screen. Uses it to calculate the rotation to apply from sensitivity.
+            float x = (float)(mouseY - (WIN_HEIGHT / 2)) / WIN_HEIGHT;
+            float y =  (float)(mouseX - (WIN_WIDTH / 2)) / WIN_WIDTH;
+            mouseMovement = glm::vec2(x, y);
+
+            // Sets mouse to centre of screen.
+            glfwSetCursorPos(window, (WIN_WIDTH / 2), (WIN_HEIGHT / 2));
+        }
+        else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE)
+        {
+            // Unhides cursor since camera is not looking around anymore
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            // Makes sure the next time the camera looks around it doesn't jump
+            firstClick = true;
+        }
+
+        scene.CameraUpdate(camMovement, mouseMovement);
     }
 };

@@ -21,7 +21,7 @@ void GetCamSpaceValues(out vec3 normal, out vec3 position)
 {
     position = (model * vec4(VertexPosition, 1.0f)).xyz;
     PosRelativeToPerspective =  (ModelViewMatrix * vec4(VertexPosition, 1.0f)).xyz;
-    normal = normalize(NormalMatrix*VertexNormal);
+    normal = normalize(VertexNormal);
 }
 
 void main()

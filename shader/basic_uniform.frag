@@ -1,14 +1,16 @@
 #version 460
 
+in vec3 ViewDir;
 in vec3 PosRelativeToPerspective;
 in vec3 Position;
 in vec3 Normal;
 in vec2 TexCoord;
 
 layout (location = 0) out vec4 FragColor;
-layout (binding = 0 ) uniform sampler2D Tex1;
-layout (binding = 1 ) uniform sampler2D Tex2;
-
+layout (binding = 0 ) uniform sampler2D Tex1; // Diffuse
+layout (binding = 1 ) uniform sampler2D Tex2; // Moss
+layout (binding = 2 ) uniform sampler2D TexNormal; // Normal Map
+ 
 // Toon Shader
 const int levels = 4;
 const float scaleFactor = 1.0/levels;
@@ -70,7 +72,7 @@ vec3 BlinnPhong(LightInfo Light, vec3 position, vec3 normal, vec3 texColor)
     vec3 specular = vec3(0.0);
     if (lightDirDotNormal > 0.0 && Material.Shininess != 0 )
     {
-        vec3 dirBackFromCam = normalize(-position.xyz);
+        vec3 dirBackFromCam = normalize(ViewDir);
         vec3 reflection = reflect(-lightDirection, normal);
         specular = Material.Specular * pow(max(dot(reflection, dirBackFromCam), 0.0), Material.Shininess);
     }
@@ -119,6 +121,9 @@ vec3 BlinnPhongSpot(SpotLightInfo Light, vec3 position, vec3 normal,  vec3 texCo
 
 void main() 
 {
+    vec3 normTexture = texture(TexNormal, TexCoord).xyz;
+    vec3 norm = normalize(normTexture * 2.0 - 1.0);   
+
     // Depth of the scene
     float dist = abs(PosRelativeToPerspective.z);
     float fogFactor = (Fog.MaxDist - dist)/(Fog.MaxDist - Fog.MinDist);
@@ -128,14 +133,29 @@ void main()
     // Texture
     vec3 texColor = texture(Tex1, TexCoord).rgb;
     vec4 texColor2 = texture(Tex2, TexCoord);
-    texColor = mix(texColor, texColor2.rgb, texColor2.a);
+    if (texColor2.r > 0 || texColor2.g > 0 || texColor2.b > 0)
+        texColor = mix(texColor, texColor2.rgb, texColor2.a);
 
-    // Calculate each light.
-    for (int i = 0; i < Lights.length; i++)
-        shadeColor += BlinnPhong(Lights[i], Position, Normal, texColor);
+    // Does this object have a normal texture? 
+   if (normTexture.r > 0 || normTexture.g > 0 || normTexture.b > 0)   
+   {
+        // Calculate each light.
+        for (int i = 0; i < Lights.length; i++)
+            shadeColor += BlinnPhong(Lights[i], Position, norm, texColor);
 
-    // Calculate each Spot light
-    //shadeColor += BlinnPhongSpot(SpotLight, Position, Normal, texColor);
+        // Calculate each Spot light
+        //shadeColor += BlinnPhongSpot(SpotLight, Position, norm, texColor);
+
+   }
+   else
+   {
+        // Calculate each light.
+        for (int i = 0; i < Lights.length; i++)
+            shadeColor += BlinnPhong(Lights[i], Position, Normal, texColor);
+
+        // Calculate each Spot light
+        //shadeColor += BlinnPhongSpot(SpotLight, Position, Normal, texColor);
+   }
 
     // Mix light and fog
     vec3 Colour = mix(Fog.Color, shadeColor, fogFactor);

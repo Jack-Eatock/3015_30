@@ -28,7 +28,7 @@ private:
     Cube cube;
     float tPrev;
     float angle;
-    GLuint boatTexture, mossTexture, waterTextureDiffuse, skyBoxTex;
+    GLuint boatTexture, mossTexture, waterTextureDiffuse, waterTextureNormal, skyBoxTex;
     float waterPos;
     SkyBox skybox;
     CamController camera;

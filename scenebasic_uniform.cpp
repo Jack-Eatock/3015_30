@@ -49,7 +49,8 @@ void SceneBasic_Uniform::initScene()
 	// Textures
 	boatTexture = Texture::loadTexture("media/texture/Pallete.png");
 	mossTexture = Texture::loadTexture("media/texture/moss.png");
-	waterTextureDiffuse = Texture::loadTexture("media/texture/Water/Water_001_COLOR.jpg");
+	waterTextureDiffuse = Texture::loadTexture("media/texture/Water/Water.png");
+	waterTextureNormal = Texture::loadTexture("media/texture/Water/Water_001_NORM.jpg");
 	skyBoxTex = Texture::loadCubeMap("media/texture/cube/Test/CloudyCrown_Daybreak");
 	
 	// Spot Light
@@ -129,11 +130,6 @@ void SceneBasic_Uniform::render()
 {
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-	//vec4 lightPos = vec4(10.0f * cos(angle), 10.0f, 10.0f * sin(angle), 1.0f);
-	//prog.setUniform("SpotLight.Position", vec3(view*lightPos));
-	//mat3 normalMatrix = mat3(vec3(view[0]), vec3(view[1]), vec3(view[2]));
-	//prog.setUniform("SpotLight.Direction", normalMatrix * vec3(-lightPos));
-
 	// Sky box
 
 	glActiveTexture(GL_TEXTURE0);
@@ -171,8 +167,15 @@ void SceneBasic_Uniform::render()
 
 	// Water
 
+
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, waterTextureDiffuse);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, waterTextureNormal);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 	prog.setUniform("Material.Diffuse", vec3(0.2, 0.5f, .2f));
 	prog.setUniform("Material.Specular", vec3(0.f, 0.5f, .2f));
@@ -186,6 +189,8 @@ void SceneBasic_Uniform::render()
 	water->render();
 
 	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 

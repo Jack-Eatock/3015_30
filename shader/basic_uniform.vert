@@ -3,11 +3,13 @@
 layout (location = 0) in vec3 VertexPosition;
 layout (location = 1) in vec3 VertexNormal;
 layout (location = 2) in vec2 VertexTexCoord;
+layout (location = 3) in vec4 VertexTangent;
 
 out vec3 Position;
 out vec3 Normal;
 out vec2 TexCoord;
 out vec3 PosRelativeToPerspective;
+out vec3 ViewDir;
 
 // Matrices
 uniform mat4 ModelViewMatrix;
@@ -29,5 +31,16 @@ void main()
     TexCoord = VertexTexCoord;
     GetCamSpaceValues(Normal,Position);
 
+
+    // Normal
+    vec3 tangent = normalize(vec3(VertexTangent));
+    vec3 binormal = normalize(cross(Normal, tangent)) * VertexTangent.w;
+
+    mat3 toObjectLocal = mat3(
+        tangent.x, binormal.x, Normal.x,
+        tangent.y,  binormal.y, Normal.y,
+        tangent.z,  binormal.z, Normal.z
+    );
+    ViewDir = toObjectLocal*normalize(-Position);
     gl_Position =  ModelViewPerspective * vec4(VertexPosition,1.0);
 }

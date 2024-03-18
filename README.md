@@ -24,7 +24,7 @@ The project will then open in a small window.
  2. Within the project, navigate to x64/Debug and run the executable "COMP3016_CW2.exe"
  3. The game should start and you will already be able to interact! 
 
-### Architecture:
+#### Architecture:
 - Skybox rendered in the background using a seperate shader
 - Lighting is calculated using BlingPhong
 - Fog has been created using mixing
@@ -37,8 +37,8 @@ The project will then open in a small window.
 - Edge detection is used to create a feint black outline to all objects
 - Keyboard and mouse inputs are used to move the camera
 
-## Dependencies:
-####  In order to achieve a lot of the functionality required for this project. Quite a few libraries were used:
+#### Dependencies:
+ In order to achieve a lot of the functionality required for this project. Quite a few libraries were used:
 - Glad - A great library that manages function pointers for OpenGL.
 - GLFW - Used for context and window management.
 - GLM - A mathematics library.

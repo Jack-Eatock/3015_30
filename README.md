@@ -33,7 +33,7 @@ The project will then open in a small window.
 - Keyboard and mouse inputs are used to move the camera
 
 ### Video
-You can find the video here: 
+You can find the video here: https://www.youtube.com/watch?v=5bG0rqyviw0&ab_channel=JackEatock
 
 ### References:
 - Skybox: [https://assetstore.unity.com/packages/2d/textures-materials/sky/farland-skies-cloudy-crown-60004](https://assetstore.unity.com/packages/2d/textures-materials/sky/farland-skies-cloudy-crown-60004 "https://assetstore.unity.com/packages/2d/textures-materials/sky/farland-skies-cloudy-crown-60004")

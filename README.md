@@ -12,7 +12,7 @@ Pirate is a small visual showcase of my experience using OpenGL. It presents you
 
 ### Controls:
 - WASD to move the camera
-- CTRL orSpace to move the camera up or down
+- CTRL or Space to move the camera up or down
 - Left click and move mouse to look around
 
 ### How to run the game:
@@ -25,17 +25,17 @@ The project will then open in a small window.
  3. The game should start and you will already be able to interact! 
 
 #### Architecture:
-- Skybox rendered in the background using a seperate shader
-- Lighting is calculated using BlingPhong
-- Fog has been created using mixing
-- Toon Shading effect created by flooring the diffuse light values
-- Multiple lights are present in the scene with their own positions and colours
-- The ability to use a spot light is available, however not used in this scene
-- Textures are mixed to create more unique visuals
-- Normal maps are used to make simple low poly meshes appear far more detailed
-- Objects within the scene are animated
-- Edge detection is used to create a feint black outline to all objects
-- Keyboard and mouse inputs are used to move the camera
+- Skybox rendered in the background using a separate shader and cube map. Using a cube map is more efficient as it avoids having to load 6 individual textures for each face. Also, it is super handy because of how easily it can be sampled using a direction, ideal for a camera.
+- Lighting is calculated using BlingPhong.
+- Fog has been created using mixing. Depending on the depth of the vertex point, the fog will be mixed over the colour of the pixel.
+- Toon Shading effect created by flooring the diffuse light values.
+- Multiple lights are present in the scene with their own positions and colours. There is an array of lights in the frag shader. When rendering the lighting it iterates over each light in the array adding up their lighting values.
+- The ability to use a spotlight is available, however, they are not used in this scene because they did not have a good situation to be used.
+- Textures are mixed to create more unique visuals, for example, the ship has 2 textures a diffuse and a moss texture that is overlayed using its alpha channel.
+- Normal maps are used to make simple low poly meshes appear far more detailed such as the water. It makes the mesh look more complex by increasing the level of detail produced by the lighting.
+- Objects within the scene are animated, such as the boat and water. This was done by keeping track of the delta time, the time between the last frame and current, this was then used to adjust values and move objects while remaining frame consistent. Not using delta time would cause different machines to render the objects at different speeds.
+- Edge detection is used to create a feint black outline for all objects, this was achieved by using two render passes, one renders the scene and the other takes that scene and draws lines around the edges before outputting it to the screen.
+- Keyboard and mouse inputs are used to move the camera. The scene runner checks for inputs and passes in a vector3 movement and a vector 2 mouse movement to the scene. The scene then uses these values to move the camera as expected.
 
 #### Dependencies:
  In order to achieve a lot of the functionality required for this project. Quite a few libraries were used:

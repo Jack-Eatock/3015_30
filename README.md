@@ -19,6 +19,11 @@ Pirate is a small visual showcase of my experience using OpenGL. It presents you
 Unzip the build.zip file, open up the folder and run the executable "Pirate.exe".
 The project will then open in a small window.
 
+##### From the Repo:
+ 1. Firstly download the repository.
+ 2. Within the project, navigate to x64/Debug and run the executable "COMP3016_CW2.exe"
+ 3. The game should start and you will already be able to interact! 
+
 ### Architecture:
 - Skybox rendered in the background using a seperate shader
 - Lighting is calculated using BlingPhong
@@ -32,10 +37,17 @@ The project will then open in a small window.
 - Edge detection is used to create a feint black outline to all objects
 - Keyboard and mouse inputs are used to move the camera
 
+## Dependencies:
+####  In order to achieve a lot of the functionality required for this project. Quite a few libraries were used:
+- Glad - A great library that manages function pointers for OpenGL.
+- GLFW - Used for context and window management.
+- GLM - A mathematics library.
+- Stb - Used for generating and loading texturing.
+
 ### Video
 You can find the video here: https://www.youtube.com/watch?v=5bG0rqyviw0&ab_channel=JackEatock
 
-### References:
+### External Assets:
 - Skybox: [https://assetstore.unity.com/packages/2d/textures-materials/sky/farland-skies-cloudy-crown-60004](https://assetstore.unity.com/packages/2d/textures-materials/sky/farland-skies-cloudy-crown-60004 "https://assetstore.unity.com/packages/2d/textures-materials/sky/farland-skies-cloudy-crown-60004")
 - Water textures: [https://3dtextures.me/2017/12/28/water-001/](https://3dtextures.me/2017/12/28/water-001/ "https://3dtextures.me/2017/12/28/water-001/")
 - Water model: [https://sketchfab.com/3d-models/low-poly-water-f3471d6d2e4447fc8b5cf837c963c1de](https://sketchfab.com/3d-models/low-poly-water-f3471d6d2e4447fc8b5cf837c963c1de "https://sketchfab.com/3d-models/low-poly-water-f3471d6d2e4447fc8b5cf837c963c1de")

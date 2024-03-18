@@ -18,9 +18,14 @@
 class SceneBasic_Uniform : public Scene
 {
 private:
-    GLSLProgram prog, skyProg;
+
     void compile();
     void setMatrices(GLSLProgram& p);
+    void setupFBO();
+    void renderToTexture();
+    void renderScene();
+
+    GLSLProgram prog, skyProg;
     Plane plane;
     std::unique_ptr<ObjMesh> boat, water;
     Teapot teapot;
@@ -32,6 +37,7 @@ private:
     float waterPos;
     SkyBox skybox;
     CamController camera;
+    GLuint fboHandle;
 
 public:
     SceneBasic_Uniform();

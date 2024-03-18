@@ -7,10 +7,14 @@ in vec3 Normal;
 in vec2 TexCoord;
 
 layout (location = 0) out vec4 FragColor;
-layout (binding = 0 ) uniform sampler2D Tex1; // Diffuse
-layout (binding = 1 ) uniform sampler2D Tex2; // Moss
-layout (binding = 2 ) uniform sampler2D TexNormal; // Normal Map
+layout (binding = 1 ) uniform sampler2D Tex1; // Diffuse
+layout (binding = 2 ) uniform sampler2D Tex2; // Moss
+layout (binding = 3 ) uniform sampler2D TexNormal; // Normal Map
  
+layout (binding = 0) uniform sampler2D RenderTex;
+
+uniform bool displayRender; 
+
 // Toon Shader
 const int levels = 4;
 const float scaleFactor = 1.0/levels;
@@ -135,6 +139,14 @@ void main()
     vec4 texColor2 = texture(Tex2, TexCoord);
     if (texColor2.r > 0 || texColor2.g > 0 || texColor2.b > 0)
         texColor = mix(texColor, texColor2.rgb, texColor2.a);
+
+    // Do we want to display a render instead?
+    if (displayRender)
+    {
+         vec3 texRender = texture(RenderTex, TexCoord).rgb;
+           texColor = texRender;
+    }
+   
 
     // Does this object have a normal texture? 
    if (normTexture.r > 0 || normTexture.g > 0 || normTexture.b > 0)   

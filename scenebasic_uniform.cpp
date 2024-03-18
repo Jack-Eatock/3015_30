@@ -42,6 +42,8 @@ void SceneBasic_Uniform::initScene()
 
     compile();
 	glEnable(GL_DEPTH_TEST);
+	
+
 	model = mat4(1.0f);
 	view = glm::lookAt(vec3(5.0f, 5.0f, 7.5f), vec3(0.0f, 0.75f, 0.0f), vec3(0.0f,1.0f,0.0f));
 	projection = mat4(1.0f);
@@ -76,6 +78,10 @@ void SceneBasic_Uniform::initScene()
 	prog.setUniform("Fog.MaxDist", 19.0f);
 	prog.setUniform("Fog.MinDist", 1.0f);
 	prog.setUniform("Fog.Color", vec3(.16f, 0.1f, 0.1f));
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, boatTexture);
+	setupFBO();
 }
 
 void SceneBasic_Uniform::compile()
@@ -128,70 +134,12 @@ void SceneBasic_Uniform::update( float t )
 
 void SceneBasic_Uniform::render()
 {
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-
-	// Sky box
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, skyBoxTex);
-	model = mat4(1.0f);
-	setMatrices(skyProg);
-	skybox.render();
-	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-
-	// Boat
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, boatTexture);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, mossTexture);
-
-	prog.setUniform("Material.Diffuse", vec3(.2f, .2f, .2f));
-	prog.setUniform("Material.Specular", vec3(0.95f, 0.95f, .95f));
-	prog.setUniform("Material.Ambient", vec3(0.2f * .3f, 0.55f * .3f, .9f * .3f));
-	prog.setUniform("Material.Shininess", 100.0f);
-
-	model = mat4(1.0f);
-	model = glm::translate(model, vec3(-5.0f, 9.3f, -5.0f));
-	model = glm::rotate(model, glm::radians(110.0f + (angle * 2.0f)), vec3(0.0f, 1.0f, 0.0f));
-	model = glm::rotate(model, glm::radians(-6.0f + (angle * 4.0f) ), vec3(1.0f, 0.0f, 0.0f));
-	model = glm::rotate(model, glm::radians(-.5f + (angle * 1.2f)), vec3(0.0f, 0.0f, 1.0f));
-	setMatrices(prog);
-	boat->render();
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-
-	// Water
-
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, waterTextureDiffuse);
-
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, waterTextureNormal);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	prog.setUniform("Material.Diffuse", vec3(0.2, 0.5f, .2f));
-	prog.setUniform("Material.Specular", vec3(0.f, 0.5f, .2f));
-	prog.setUniform("Material.Ambient", vec3(0.05f, 0.05f, .05f));
-	prog.setUniform("Material.Shininess", 0.0f);
-
-	model = mat4(1.0f);
-	model = glm::translate(model, vec3(-5.0f - (25 * waterPos), -0.5f, -5.0f + (4 * waterPos)));
-	setMatrices(prog);
-	
-	water->render();
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, fboHandle);
+	renderToTexture();
+	glFlush();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	renderScene();
+	glFlush();
 }
 
 void SceneBasic_Uniform::resize(int w, int h)
@@ -202,7 +150,6 @@ void SceneBasic_Uniform::resize(int w, int h)
 	projection = glm::perspective(glm::radians(70.0f), (float)w / h, .3f, 100.0f);
 }
 
-vec3 Position;
 
 void SceneBasic_Uniform::CameraUpdate(glm::vec3 movement, glm::vec2 mouseMovement)
 {
@@ -221,6 +168,148 @@ void SceneBasic_Uniform::setMatrices(GLSLProgram &p)
 	p.setUniform("ModelViewMatrix", mv);
 	p.setUniform("NormalMatrix", glm::mat3(vec3(mv[0]), vec3(mv[1]), vec3(mv[2])));
 	p.setUniform("ModelViewPerspective", projection*mv);
-
 	p.setUniform("model", model);
+}
+
+void SceneBasic_Uniform::setupFBO()
+{
+	glGenFramebuffers(1, &fboHandle);
+	glBindFramebuffer(GL_FRAMEBUFFER, fboHandle);
+	GLuint renderTex;
+	glGenTextures(1, &renderTex);
+	std::cout << "A " << &renderTex << std::ends;
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, renderTex);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 512, 512);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderTex, 0);
+
+	GLuint depthBuf;
+	glGenRenderbuffers(1, &depthBuf);
+	glBindRenderbuffer(GL_RENDERBUFFER, depthBuf);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 512,512);
+	
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT , GL_RENDERBUFFER, depthBuf);
+	GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0 };
+	glDrawBuffers(1, drawBuffers);
+	GLenum result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (result == GL_FRAMEBUFFER_COMPLETE) {
+		std::cout << "Frame buffer is complete!" << std::endl;
+	}
+	else {
+		std::cout << "Frame buffer error! : " << result << std::endl;
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void SceneBasic_Uniform::renderToTexture()
+{
+	prog.setUniform("RenderTex", 1);
+	glViewport(0, 0, 512, 512);
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Boat
+
+	
+
+	prog.setUniform("Material.Diffuse", vec3(.2f, .2f, .2f));
+	prog.setUniform("Material.Specular", vec3(0.95f, 0.95f, .95f));
+	prog.setUniform("Material.Ambient", vec3(0.2f * .3f, 0.55f * .3f, .9f * .3f));
+	prog.setUniform("Material.Shininess", 100.0f);
+
+	model = mat4(1.0f);
+	model = glm::translate(model, vec3(0.0f, 0.3f, 0.0f));
+	model = glm::rotate(model, glm::radians(110.0f + (angle * 2.0f)), vec3(0.0f, 1.0f, 0.0f));
+	model = glm::rotate(model, glm::radians(-6.0f + (angle * 4.0f)), vec3(1.0f, 0.0f, 0.0f));
+	model = glm::rotate(model, glm::radians(-.5f + (angle * 1.2f)), vec3(0.0f, 0.0f, 1.0f));
+	setMatrices(prog);
+	boat->render();
+
+
+}
+
+void SceneBasic_Uniform::renderScene()
+{
+	prog.setUniform("RenderTex", 0);
+	glViewport(0, 0, width, height);
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+	// Testing
+	prog.setUniform("displayRender", true);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, waterTextureDiffuse);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	model = mat4(1.0f);
+	setMatrices(prog);
+	cube.render();
+	prog.setUniform("displayRender", false);
+
+	// Sky box
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, skyBoxTex);
+	model = mat4(1.0f);
+	setMatrices(skyProg);
+	skybox.render();
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+	// Boat
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, boatTexture);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, mossTexture);
+
+	prog.setUniform("Material.Diffuse", vec3(.2f, .2f, .2f));
+	prog.setUniform("Material.Specular", vec3(0.95f, 0.95f, .95f));
+	prog.setUniform("Material.Ambient", vec3(0.2f * .3f, 0.55f * .3f, .9f * .3f));
+	prog.setUniform("Material.Shininess", 100.0f);
+
+	model = mat4(1.0f);
+	model = glm::translate(model, vec3(-5.0f, 9.3f, -5.0f));
+	model = glm::rotate(model, glm::radians(110.0f + (angle * 2.0f)), vec3(0.0f, 1.0f, 0.0f));
+	model = glm::rotate(model, glm::radians(-6.0f + (angle * 4.0f)), vec3(1.0f, 0.0f, 0.0f));
+	model = glm::rotate(model, glm::radians(-.5f + (angle * 1.2f)), vec3(0.0f, 0.0f, 1.0f));
+	setMatrices(prog);
+	boat->render();
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+
+	// Water
+
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, waterTextureDiffuse);
+
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, waterTextureNormal);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	prog.setUniform("Material.Diffuse", vec3(0.2, 0.5f, .2f));
+	prog.setUniform("Material.Specular", vec3(0.f, 0.5f, .2f));
+	prog.setUniform("Material.Ambient", vec3(0.05f, 0.05f, .05f));
+	prog.setUniform("Material.Shininess", 0.0f);
+
+	model = mat4(1.0f);
+	model = glm::translate(model, vec3(-5.0f - (25 * waterPos), -0.5f, -5.0f + (4 * waterPos)));
+	setMatrices(prog);
+
+	water->render();
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }

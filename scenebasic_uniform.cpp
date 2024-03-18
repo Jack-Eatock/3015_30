@@ -41,12 +41,11 @@ void SceneBasic_Uniform::initScene()
 		GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_ERROR, GL_DONT_CARE, 0, NULL, GL_TRUE);
 
     compile();
+	glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 	
 
-	model = mat4(1.0f);
-	view = glm::lookAt(vec3(5.0f, 5.0f, 7.5f), vec3(0.0f, 0.75f, 0.0f), vec3(0.0f,1.0f,0.0f));
-	projection = mat4(1.0f);
+	
 
 	// Textures
 	boatTexture = Texture::loadTexture("media/texture/Pallete.png");
@@ -82,6 +81,39 @@ void SceneBasic_Uniform::initScene()
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, boatTexture);
 	setupFBO();
+
+	GLfloat verts[] = {
+		-1.0f, -1.0f, 0.0f, 1.0f, -1.0f, 0.0f, 1.0f, 1.0f, 0.0f,
+		-1.0f, -1.0f, 0.0f, 1.0f, 1.0f, 0.0f, -1.0f, 1.0f, 0.0f,
+	};
+
+	GLfloat tc[] = {
+		1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+		1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+	};
+
+	unsigned int handle[2];
+	glGenBuffers(2, handle);
+	glBindBuffer(GL_ARRAY_BUFFER, handle[0]);
+	glBufferData(GL_ARRAY_BUFFER, 6 * 3 * sizeof(float), verts, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, handle[1]);
+	glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), tc, GL_STATIC_DRAW);
+
+	glGenVertexArrays(1, &fsQuad);
+	glBindVertexArray(fsQuad);
+
+	glBindBuffer(GL_ARRAY_BUFFER, handle[0]);
+	glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, 0,0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, handle[1]);
+	glVertexAttribPointer((GLuint)2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(2);
+
+	glBindVertexArray(0);
+
+	prog.setUniform("EdgeThreshold", 0.05f);
 }
 
 void SceneBasic_Uniform::compile()
@@ -134,12 +166,9 @@ void SceneBasic_Uniform::update( float t )
 
 void SceneBasic_Uniform::render()
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, fboHandle);
-	renderToTexture();
+	pass1();
 	glFlush();
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	renderScene();
-	glFlush();
+	pass2();
 }
 
 void SceneBasic_Uniform::resize(int w, int h)
@@ -156,10 +185,9 @@ void SceneBasic_Uniform::CameraUpdate(glm::vec3 movement, glm::vec2 mouseMovemen
 	camera.Inputs(movement, mouseMovement);
 
 	//Position += cameraMovement;
-	view = glm::lookAt(camera.position, camera.position + camera.Orientation, camera.Up);
+	
 
 }
-
 
 void SceneBasic_Uniform::setMatrices(GLSLProgram &p)
 {
@@ -175,23 +203,24 @@ void SceneBasic_Uniform::setupFBO()
 {
 	glGenFramebuffers(1, &fboHandle);
 	glBindFramebuffer(GL_FRAMEBUFFER, fboHandle);
-	GLuint renderTex;
+
 	glGenTextures(1, &renderTex);
-	std::cout << "A " << &renderTex << std::ends;
-	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, renderTex);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 512, 512);
+
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
+
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderTex, 0);
 
 	GLuint depthBuf;
 	glGenRenderbuffers(1, &depthBuf);
 	glBindRenderbuffer(GL_RENDERBUFFER, depthBuf);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 512,512);
-	
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT , GL_RENDERBUFFER, depthBuf);
+
 	GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0 };
 	glDrawBuffers(1, drawBuffers);
 	GLenum result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -204,51 +233,18 @@ void SceneBasic_Uniform::setupFBO()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void SceneBasic_Uniform::renderToTexture()
+void SceneBasic_Uniform::pass1()
 {
-	prog.setUniform("RenderTex", 1);
-	glViewport(0, 0, 512, 512);
-
+	prog.setUniform("Pass", 1);
+	glBindFramebuffer(GL_FRAMEBUFFER, fboHandle);
+	glEnable(GL_DEPTH_TEST);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// Boat
-
-	
-
-	prog.setUniform("Material.Diffuse", vec3(.2f, .2f, .2f));
-	prog.setUniform("Material.Specular", vec3(0.95f, 0.95f, .95f));
-	prog.setUniform("Material.Ambient", vec3(0.2f * .3f, 0.55f * .3f, .9f * .3f));
-	prog.setUniform("Material.Shininess", 100.0f);
-
-	model = mat4(1.0f);
-	model = glm::translate(model, vec3(0.0f, 0.3f, 0.0f));
-	model = glm::rotate(model, glm::radians(110.0f + (angle * 2.0f)), vec3(0.0f, 1.0f, 0.0f));
-	model = glm::rotate(model, glm::radians(-6.0f + (angle * 4.0f)), vec3(1.0f, 0.0f, 0.0f));
-	model = glm::rotate(model, glm::radians(-.5f + (angle * 1.2f)), vec3(0.0f, 0.0f, 1.0f));
-	setMatrices(prog);
-	boat->render();
-
-
-}
-
-void SceneBasic_Uniform::renderScene()
-{
-	prog.setUniform("RenderTex", 0);
 	glViewport(0, 0, width, height);
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-	// Testing
-	prog.setUniform("displayRender", true);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, waterTextureDiffuse);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	model = mat4(1.0f);
-	setMatrices(prog);
-	cube.render();
-	prog.setUniform("displayRender", false);
+	view = glm::lookAt(camera.position, camera.position + camera.Orientation, camera.Up);
+	projection = glm::perspective(glm::radians(60.0f), (float)width / height, 0.3f, 100.0f);
+	// 
+	
 
 	// Sky box
 
@@ -287,7 +283,6 @@ void SceneBasic_Uniform::renderScene()
 
 	// Water
 
-
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, waterTextureDiffuse);
 
@@ -304,6 +299,7 @@ void SceneBasic_Uniform::renderScene()
 
 	model = mat4(1.0f);
 	model = glm::translate(model, vec3(-5.0f - (25 * waterPos), -0.5f, -5.0f + (4 * waterPos)));
+	
 	setMatrices(prog);
 
 	water->render();
@@ -312,4 +308,27 @@ void SceneBasic_Uniform::renderScene()
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+
+}
+
+void SceneBasic_Uniform::pass2()
+{
+	prog.setUniform("Pass", 2);
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, renderTex);
+	glDisable(GL_DEPTH_TEST);
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+	model = mat4(1.0f);
+	view = mat4(1.0f);
+	projection = mat4(1.0f);
+
+	setMatrices(prog);
+
+	glBindVertexArray(fsQuad);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glBindVertexArray(0);
 }

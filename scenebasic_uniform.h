@@ -22,8 +22,8 @@ private:
     void compile();
     void setMatrices(GLSLProgram& p);
     void setupFBO();
-    void renderToTexture();
-    void renderScene();
+    void pass1();
+    void pass2();
 
     GLSLProgram prog, skyProg;
     Plane plane;
@@ -37,7 +37,7 @@ private:
     float waterPos;
     SkyBox skybox;
     CamController camera;
-    GLuint fboHandle;
+    GLuint fboHandle, fsQuad, renderTex;
 
 public:
     SceneBasic_Uniform();

@@ -6,6 +6,11 @@ in vec3 Position;
 in vec3 Normal;
 in vec2 TexCoord;
 
+// Edge
+uniform float EdgeThreshold;
+uniform int Pass;
+const vec3 lum = vec3(.3, 0.3, .0722);
+
 layout (location = 0) out vec4 FragColor;
 layout (binding = 1 ) uniform sampler2D Tex1; // Diffuse
 layout (binding = 2 ) uniform sampler2D Tex2; // Moss
@@ -122,8 +127,12 @@ vec3 BlinnPhongSpot(SpotLightInfo Light, vec3 position, vec3 normal,  vec3 texCo
     return ambient + spotScale * (diffuse + specular) * Light.Colour;
 }
 
+float luminance(vec3 color)
+{
+    return dot(lum, color);
+}
 
-void main() 
+vec4 pass1()
 {
     vec3 normTexture = texture(TexNormal, TexCoord).xyz;
     vec3 norm = normalize(normTexture * 2.0 - 1.0);   
@@ -144,13 +153,13 @@ void main()
     if (displayRender)
     {
          vec3 texRender = texture(RenderTex, TexCoord).rgb;
-           texColor = texRender;
+         texColor = texRender;
     }
    
 
     // Does this object have a normal texture? 
-   if (normTexture.r > 0 || normTexture.g > 0 || normTexture.b > 0)   
-   {
+    if (normTexture.r > 0 || normTexture.g > 0 || normTexture.b > 0)   
+    {
         // Calculate each light.
         for (int i = 0; i < Lights.length; i++)
             shadeColor += BlinnPhong(Lights[i], Position, norm, texColor);
@@ -158,19 +167,49 @@ void main()
         // Calculate each Spot light
         //shadeColor += BlinnPhongSpot(SpotLight, Position, norm, texColor);
 
-   }
-   else
-   {
+    }
+    else
+    {
         // Calculate each light.
         for (int i = 0; i < Lights.length; i++)
             shadeColor += BlinnPhong(Lights[i], Position, Normal, texColor);
 
         // Calculate each Spot light
         //shadeColor += BlinnPhongSpot(SpotLight, Position, Normal, texColor);
-   }
+    }
 
     // Mix light and fog
     vec3 Colour = mix(Fog.Color, shadeColor, fogFactor);
 
-    FragColor = vec4(Colour, 1.0);
+    return vec4(Colour, 1.0);
+}
+
+
+
+vec4 pass2()
+{
+    ivec2 pix = ivec2(gl_FragCoord.xy);
+    float s00 = luminance(texelFetchOffset(RenderTex, pix, 0, ivec2(-1,1)).rgb);
+    float s10 = luminance(texelFetchOffset(RenderTex, pix, 0, ivec2(-1,0)).rgb);
+    float s20 = luminance(texelFetchOffset(RenderTex, pix, 0, ivec2(-1,-1)).rgb);
+    float s01 = luminance(texelFetchOffset(RenderTex, pix, 0, ivec2(0,1)).rgb);
+    float s21 = luminance(texelFetchOffset(RenderTex, pix, 0, ivec2(0,-1)).rgb);
+    float s02 = luminance(texelFetchOffset(RenderTex, pix, 0, ivec2(1,1)).rgb);
+    float s12 = luminance(texelFetchOffset(RenderTex, pix, 0, ivec2(1,0)).rgb);
+    float s22 = luminance(texelFetchOffset(RenderTex, pix, 0, ivec2(1,-1)).rgb);
+
+    float sx = s00+2*s10+s20-(s02+2*s12+s22);
+    float sy = s00+2*s01+s02-(s20+2*s21+s22);
+    float g  = sx*sx+sy*sy;
+    if (g >EdgeThreshold)
+        return vec4(0.1);
+    else
+        return texelFetch(RenderTex,pix, 0); // vec(0,0,0,1);
+}
+
+void main() 
+{
+
+   if (Pass == 1) FragColor = pass1();
+   else if (Pass == 2) FragColor += pass2();
 }

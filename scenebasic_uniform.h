@@ -26,11 +26,7 @@ private:
     void pass2();
 
     GLSLProgram prog, skyProg;
-    Plane plane;
     std::unique_ptr<ObjMesh> boat, water;
-    Teapot teapot;
-    Torus torus;
-    Cube cube;
     float tPrev;
     float angle;
     GLuint boatTexture, mossTexture, waterTextureDiffuse, waterTextureNormal, skyBoxTex;

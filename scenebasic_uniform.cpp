@@ -21,10 +21,6 @@ bool forward = true;
 
 SceneBasic_Uniform::SceneBasic_Uniform() :
 	tPrev(0),
-	plane(50.0f, 50.0f, 1, 1),
-	teapot(14, glm::mat4(1.0f)),
-	torus(1.75f * .75, .4f, 50, 50),
-	cube(),
 	skybox(100.0f),
 	camera()
 {

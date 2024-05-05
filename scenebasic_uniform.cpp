@@ -231,6 +231,7 @@ void SceneBasic_Uniform::setupFBO()
 
 void SceneBasic_Uniform::pass1()
 {
+	prog.use();
 	prog.setUniform("Pass", 1);
 	glBindFramebuffer(GL_FRAMEBUFFER, fboHandle);
 	glEnable(GL_DEPTH_TEST);
@@ -244,6 +245,7 @@ void SceneBasic_Uniform::pass1()
 
 	// Sky box
 
+	skyProg.use();
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skyBoxTex);
 	model = mat4(1.0f);
@@ -252,7 +254,7 @@ void SceneBasic_Uniform::pass1()
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
 	// Boat
-
+	prog.use();
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, boatTexture);
 	glActiveTexture(GL_TEXTURE2);

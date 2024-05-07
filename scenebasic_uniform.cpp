@@ -277,15 +277,16 @@ void SceneBasic_Uniform::pass1()
 	prog.setUniform("Pass", 1);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, fboHandle);
-	glEnable(GL_DEPTH_TEST);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
 	glViewport(0, 0, width, height);
 
 	view = glm::lookAt(camera.position, camera.position + camera.Orientation, camera.Up);
 	projection = glm::perspective(glm::radians(60.0f), (float)width / height, 0.3f, 100.0f);
-	// 
 
 	// Sky box
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_CLAMP);
 	skyProg.use();
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skyBoxTex);
@@ -293,7 +294,9 @@ void SceneBasic_Uniform::pass1()
 	setMatrices(skyProg);
 	skybox.render();
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	glEnable(GL_DEPTH_TEST);
 
+	
 	// Boat
 	prog.use();
 	glActiveTexture(GL_TEXTURE1);
@@ -307,7 +310,7 @@ void SceneBasic_Uniform::pass1()
 	prog.setUniform("Material.Shininess", 100.0f);
 
 	model = mat4(1.0f);
-	model = glm::translate(model, vec3(-12.0f, 9.3f, -5.0f + boatPosOffset));
+	model = glm::translate(model, vec3(-42.0f, 9.3f, 0.0f + boatPosOffset));
 	model = glm::rotate(model, glm::radians(110.0f + (angle * 2.0f)), vec3(0.0f, 1.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(-6.0f + (angle * 4.0f)), vec3(1.0f, 0.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(-.5f + (angle * 1.2f)), vec3(0.0f, 0.0f, 1.0f));

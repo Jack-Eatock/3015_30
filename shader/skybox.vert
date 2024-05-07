@@ -11,6 +11,7 @@ void main()
 {
     Vec = VertexPosition;
 
+
     // Setting the vertex pos
     gl_Position = ModelViewPerspective * vec4(VertexPosition,1.0);
 }

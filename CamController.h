@@ -18,8 +18,8 @@ public:
 
 	float sensitivity = 100.0f;
 	float speed = .15f;
-	glm::vec3 position = glm::vec3(-24.0f, 10.0f, 18.0f);
-	glm::vec3 Orientation = glm::vec3(0.9f, -0.3f, -1.0f);
+	glm::vec3 position = glm::vec3(-46.0f, 16.0f, 25.0f);
+	glm::vec3 Orientation = glm::vec3(0.5f, -0.4f, -1.0f);
 	glm::vec3 Up = glm::vec3(0.0f, 1.0f, 0.0f);
 
 	void Inputs(glm::vec3 camMovement, glm::vec2 mouseMovement);

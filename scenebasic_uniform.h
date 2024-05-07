@@ -13,14 +13,14 @@
 #include "helper/objmesh.h"
 #include "helper/cube.h"
 #include "helper/skybox.h"
+#include "helper/random.h"
+#include "helper/grid.h"
+#include "helper/particleutils.h"
 
 #include"CamController.h"
 class SceneBasic_Uniform : public Scene
 {
 private:
-
-    Plane plane;
-
     void compile();
     void setMatrices(GLSLProgram& p);
     void setupFBO();
@@ -33,7 +33,16 @@ private:
 
     float time;
 
-    GLSLProgram prog, skyProg;
+    // Particles
+    GLSLProgram flatProg, particleProg;
+    Random rand;
+    GLuint initVel, startTime, particles, nParticles;
+    Grid grid;
+    glm::vec3 emitterPos, emitterDir;
+    float particleLifeTime;
+
+
+    // Water
     std::unique_ptr<ObjMesh> boat, water;
     float tPrev;
     float angle;
@@ -42,11 +51,13 @@ private:
     SkyBox skybox;
     CamController camera;
     GLuint fboHandle, fsQuad, renderTex, intermediateTex,  renderFBO, intermediateFBO;
+    GLSLProgram prog, skyProg;
 
 public:
     SceneBasic_Uniform();
 
-
+    void initBuffers();
+    float randFloat();
     void initScene();
     void update( float t );
     void render();

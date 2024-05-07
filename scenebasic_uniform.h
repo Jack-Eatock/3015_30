@@ -31,11 +31,12 @@ private:
     void pass4();
     float gauss(float,float);
 
-    float time;
+    float Time;
 
     // Particles
     GLSLProgram flatProg, particleProg;
-    Random rand;
+    Random random;
+    float deltaT;
     GLuint initVel, startTime, particles, nParticles;
     Grid grid;
     glm::vec3 emitterPos, emitterDir;

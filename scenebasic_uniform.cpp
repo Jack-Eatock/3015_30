@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+#include <ctime>
 using std::string;
 
 #include <sstream>
@@ -18,6 +19,23 @@ using glm::vec4;
 using glm::mat4;
 using glm::mat3;
 bool forward = true;
+
+int numParticles = 5;
+// Starting positions
+vec3 particlePositions[5] = 
+{ 
+	vec3(10.0f, 2.3f, -6.0),
+	vec3(30.0f, 2.3f, -2.0),
+	vec3(50.0f, 2.3f, -0.0),
+	vec3(65.0f, 2.3f, 4.0),
+	vec3(23.0f, 2.3f, 6.0),
+};
+
+float particleSpeeds[5] =
+{
+	5.5, 4, 4.5, 5, 5
+};
+
 
 SceneBasic_Uniform::SceneBasic_Uniform() :
 	tPrev(0),
@@ -89,7 +107,7 @@ void SceneBasic_Uniform::initBuffers()
 
 float SceneBasic_Uniform::randFloat()
 {
-	return rand.nextFloat();
+	return random.nextFloat();
 }
 
 void SceneBasic_Uniform::initScene()
@@ -115,6 +133,7 @@ void SceneBasic_Uniform::initScene()
 	particleProg.setUniform("ParticleSize", 0.4f);
 	particleProg.setUniform("Gravity", vec3(0.0f, -.4f, .0f));
 	particleProg.setUniform("EmitterPos", emitterPos);
+
 
 	flatProg.use();
 	flatProg.setUniform("Color", glm::vec4(.4f, .4f, .4f, 1.0f));
@@ -165,6 +184,7 @@ void SceneBasic_Uniform::initScene()
 		1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
 		1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
 	};
+
 
 	unsigned int handle[2];
 	glGenBuffers(2, handle);
@@ -234,7 +254,7 @@ void SceneBasic_Uniform::compile()
 void SceneBasic_Uniform::update( float t )
 {
 	//update your angle here
-	float deltaT = t - tPrev;  // Calculates time since last frame
+	deltaT = t - tPrev;  // Calculates time since last frame
 	if (tPrev == 0.0f) deltaT = 0.0f;
 	tPrev = t;
 
@@ -259,7 +279,7 @@ void SceneBasic_Uniform::update( float t )
 			forward = true;
 		}
 	}
-	time = t;
+	Time = t;
 }
 
 void SceneBasic_Uniform::render()
@@ -282,7 +302,7 @@ void SceneBasic_Uniform::resize(int w, int h)
 
 
 float boatPosOffset;
-float maxOffset = 7;
+float maxOffset = 6;
 void SceneBasic_Uniform::CameraUpdate(glm::vec3 movement, glm::vec2 mouseMovement)
 {
 	// Move boat
@@ -402,7 +422,8 @@ void SceneBasic_Uniform::pass1()
 
 	model = mat4(1.0f);
 	model = glm::translate(model, vec3(-42.0f, 9.3f, 0.0f + boatPosOffset));
-	model = glm::rotate(model, glm::radians(110.0f + (angle * 2.0f)), vec3(0.0f, 1.0f, 0.0f));
+	//model = glm::rotate(model, glm::radians(110.0f + (angle * 2.0f)), vec3(0.0f, 1.0f, 0.0f));
+	model = glm::rotate(model, glm::radians(90.0f + (angle * 1.5f)), vec3(0.0f, 1.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(-6.0f + (angle * 4.0f)), vec3(1.0f, 0.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(-.5f + (angle * 1.2f)), vec3(0.0f, 0.0f, 1.0f));
 	setMatrices(prog);
@@ -416,7 +437,7 @@ void SceneBasic_Uniform::pass1()
 
 	// Water
 	prog.use();
-	prog.setUniform("Time", time);
+	prog.setUniform("Time", Time);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, waterTextureDiffuse);
 
@@ -444,66 +465,46 @@ void SceneBasic_Uniform::pass1()
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	// Particle Effect
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, particlesTex);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	model = mat4(1.0f);
-	model = glm::translate(model, vec3(-10.0f - (time * 4), 2.3f, -6.0f));
-	flatProg.use();
-	setMatrices(flatProg);
-	grid.render();
-	glDepthMask(GL_FALSE);
-
-	particleProg.use();
-	particleProg.setUniform("Time", time);
-	setMatrices(particleProg);
-	glBindVertexArray(particles);
-	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, nParticles);
-	glBindVertexArray(0);
-	glDepthMask(GL_TRUE);
-	glDisable(GL_BLEND);
 
 	// Particle Effect
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, particlesTex);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	model = mat4(1.0f);
-	model = glm::translate(model, vec3(5.0f - (time * 4) , 2.3f, 6.0f));
-	flatProg.use();
-	setMatrices(flatProg);
-	grid.render();
-	glDepthMask(GL_FALSE);
+	for (int i = 0; i < numParticles; i++)
+	{
+		model = mat4(1.0f);
 
-	particleProg.use();
-	particleProg.setUniform("Time", time);
-	setMatrices(particleProg);
-	glBindVertexArray(particles);
-	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, nParticles);
-	glBindVertexArray(0);
-	glDepthMask(GL_TRUE);
-	glDisable(GL_BLEND);
+		
+		vec3 pos = vec3(particlePositions[i].x - (deltaT * particleSpeeds[i] ), 2.3f, particlePositions[i].z);
+	
+		srand(time(0));
+	
+		if (pos.x < -55) {
+			int max = 30, min = 5;
+			int val = (rand() % (max - min)) + min;
+			pos.x = val;
+		
+			//max = 6, min = 4;
+			//particleSpeeds[i] = (rand() % (max - min)) + min;
 
-	// Particle Effect
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, particlesTex);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	model = mat4(1.0f);
-	model = glm::translate(model, vec3(11.0f - (time * 4), 2.3f, -7.0f));
-	flatProg.use();
-	setMatrices(flatProg);
-	grid.render();
-	glDepthMask(GL_FALSE);
+			max = 6, min = -6;
+			particlePositions[i].z = (rand() % (max - min)) + min;
+		}
 
-	particleProg.use();
-	particleProg.setUniform("Time", time);
-	setMatrices(particleProg);
-	glBindVertexArray(particles);
-	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, nParticles);
-	glBindVertexArray(0);
+		particlePositions[i] = pos;
+		model = glm::translate(model, particlePositions[i]);
+		flatProg.use();
+		setMatrices(flatProg);
+		grid.render();
+		glDepthMask(GL_FALSE);
+		particleProg.use();
+		particleProg.setUniform("Time", Time);
+		setMatrices(particleProg);
+		glBindVertexArray(particles);
+		glDrawArraysInstanced(GL_TRIANGLES, 0, 6, nParticles);
+		glBindVertexArray(0);
+	}
 	glDepthMask(GL_TRUE);
 	glDisable(GL_BLEND);
 

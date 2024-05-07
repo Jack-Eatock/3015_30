@@ -6,10 +6,13 @@ in vec3 Position;
 in vec3 Normal;
 in vec2 TexCoord;
 
+// Blur
+uniform float BlurWeight[5];
+
 // Edge
 uniform float EdgeThreshold;
 uniform int Pass;
-const vec3 lum = vec3(.3, 0.3, .0722);
+const vec3 lum = vec3(.7, 0.7, .1);
 
 layout (location = 0) out vec4 FragColor;
 layout (binding = 1 ) uniform sampler2D Tex1; // Diffuse
@@ -201,15 +204,48 @@ vec4 pass2()
     float sx = s00+2*s10+s20-(s02+2*s12+s22);
     float sy = s00+2*s01+s02-(s20+2*s21+s22);
     float g  = sx*sx+sy*sy;
+
     if (g >EdgeThreshold)
         return vec4(0.1);
     else
         return texelFetch(RenderTex,pix, 0); // vec(0,0,0,1);
 }
 
+vec4 pass3()
+{
+    ivec2 pix = ivec2(gl_FragCoord.xy);
+    vec4 sum = texelFetch(RenderTex,pix,0) * BlurWeight[0];
+    sum += texelFetchOffset(RenderTex, pix, 0 , ivec2(0,1)) * BlurWeight[1];
+    sum += texelFetchOffset(RenderTex, pix, 0 , ivec2(0,-1)) * BlurWeight[1];
+    sum += texelFetchOffset(RenderTex, pix, 0 , ivec2(0,2)) * BlurWeight[2];
+    sum += texelFetchOffset(RenderTex, pix, 0 , ivec2(0,-2)) * BlurWeight[2];
+    sum += texelFetchOffset(RenderTex, pix, 0 , ivec2(0,3)) * BlurWeight[3];
+    sum += texelFetchOffset(RenderTex, pix, 0 , ivec2(0,-3)) * BlurWeight[3];
+    sum += texelFetchOffset(RenderTex, pix, 0 , ivec2(0,4)) * BlurWeight[4];
+    sum += texelFetchOffset(RenderTex, pix, 0 , ivec2(0,-4)) * BlurWeight[4];
+    return sum;
+}
+
+vec4 pass4()
+{
+    ivec2 pix = ivec2(gl_FragCoord.xy);
+    vec4 sum = texelFetch(RenderTex,pix,0) * BlurWeight[0];
+    sum += texelFetchOffset(RenderTex, pix, 0 , ivec2(1,0)) * BlurWeight[1];
+    sum += texelFetchOffset(RenderTex, pix, 0 , ivec2(-1,0)) * BlurWeight[1];
+    sum += texelFetchOffset(RenderTex, pix, 0 , ivec2(2,0)) * BlurWeight[2];
+    sum += texelFetchOffset(RenderTex, pix, 0 , ivec2(-2,0)) * BlurWeight[2];
+    sum += texelFetchOffset(RenderTex, pix, 0 , ivec2(3,0)) * BlurWeight[3];
+    sum += texelFetchOffset(RenderTex, pix, 0 , ivec2(-3,0)) * BlurWeight[3];
+    sum += texelFetchOffset(RenderTex, pix, 0 , ivec2(4,0)) * BlurWeight[4];
+    sum += texelFetchOffset(RenderTex, pix, 0 , ivec2(-4,0)) * BlurWeight[4];
+    return sum;                             
+}
+
 void main() 
 {
 
    if (Pass == 1) FragColor = pass1();
-   else if (Pass == 2) FragColor += pass2();
+   //else if (Pass == 2) FragColor += pass2();
+   else if (Pass == 3) FragColor += pass3();
+   else if (Pass == 4) FragColor += pass4();
 }

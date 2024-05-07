@@ -22,8 +22,12 @@ private:
     void compile();
     void setMatrices(GLSLProgram& p);
     void setupFBO();
+
     void pass1();
     void pass2();
+    void pass3();
+    void pass4();
+    float gauss(float,float);
 
     GLSLProgram prog, skyProg;
     std::unique_ptr<ObjMesh> boat, water;
@@ -33,7 +37,7 @@ private:
     float waterPos;
     SkyBox skybox;
     CamController camera;
-    GLuint fboHandle, fsQuad, renderTex;
+    GLuint fboHandle, fsQuad, renderTex, intermediateTex,  renderFBO, intermediateFBO;
 
 public:
     SceneBasic_Uniform();

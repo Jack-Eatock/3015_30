@@ -37,10 +37,8 @@ void SceneBasic_Uniform::initScene()
 		GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_ERROR, GL_DONT_CARE, 0, NULL, GL_TRUE);
 
     compile();
-	glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
-	
-
 	
 
 	// Textures
@@ -109,7 +107,24 @@ void SceneBasic_Uniform::initScene()
 
 	glBindVertexArray(0);
 
+	// Edge detection
 	prog.setUniform("EdgeThreshold", 0.05f);
+
+	// Blur
+	float weights[5], sum, sigma2 = 8.0f;
+	weights[0] = gauss(0, sigma2);
+	sum = weights[0];
+	for (int i = 0; i < 5; i++) {
+		weights[i] = gauss(float(i), sigma2);
+		sum += 2 * weights[i];
+	}
+
+	for (int i = 1; i < 5; i++) {
+		std::stringstream uniName;
+		uniName << "BlurWeight[" << i << "]";
+		float val = weights[i] / sum;
+		prog.setUniform(uniName.str().c_str(), val);
+	}
 }
 
 void SceneBasic_Uniform::compile()
@@ -163,8 +178,11 @@ void SceneBasic_Uniform::update( float t )
 void SceneBasic_Uniform::render()
 {
 	pass1();
+
 	glFlush();
 	pass2();
+	pass3();
+	pass4();
 }
 
 void SceneBasic_Uniform::resize(int w, int h)
@@ -227,6 +245,25 @@ void SceneBasic_Uniform::setupFBO()
 		std::cout << "Frame buffer error! : " << result << std::endl;
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// Blur
+	glGenFramebuffers(1, &intermediateFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, intermediateFBO);
+
+	glGenTextures(1, &intermediateTex);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, intermediateTex);
+
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, intermediateTex, 0);
+
+	glDrawBuffers(1, drawBuffers);
+	glBindFramebuffer(GL_FRAMEBUFFER,0);
 }
 
 void SceneBasic_Uniform::pass1()
@@ -329,4 +366,54 @@ void SceneBasic_Uniform::pass2()
 	glBindVertexArray(fsQuad);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindVertexArray(0);
+}
+
+
+void SceneBasic_Uniform::pass3()
+{
+	prog.setUniform("Pass", 3);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, intermediateFBO);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, renderTex);
+	glDisable(GL_DEPTH_TEST);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	model = mat4(1.0f);
+	view = mat4(1.0f);
+	projection = mat4(1.0f);
+
+	setMatrices(prog);
+
+	glBindVertexArray(fsQuad);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	//glBindVertexArray(0);
+}
+
+void SceneBasic_Uniform::pass4()
+{
+	prog.setUniform("Pass", 4);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, intermediateTex);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	model = mat4(1.0f);
+	view = mat4(1.0f);
+	projection = mat4(1.0f);
+
+	setMatrices(prog);
+
+	glBindVertexArray(fsQuad);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	//glBindVertexArray(0);
+}
+
+
+float SceneBasic_Uniform::gauss(float x, float sigma2)
+{
+	double coeff = 1.0 / (glm::two_pi<double>() * sigma2);
+	double exponent = -(x * x) / ( 2.0 * sigma2 );
+	return (float)(coeff * exp(exponent));
 }

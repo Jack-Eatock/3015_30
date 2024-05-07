@@ -19,6 +19,8 @@ class SceneBasic_Uniform : public Scene
 {
 private:
 
+    Plane plane;
+
     void compile();
     void setMatrices(GLSLProgram& p);
     void setupFBO();
@@ -28,6 +30,8 @@ private:
     void pass3();
     void pass4();
     float gauss(float,float);
+
+    float time;
 
     GLSLProgram prog, skyProg;
     std::unique_ptr<ObjMesh> boat, water;

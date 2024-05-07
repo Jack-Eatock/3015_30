@@ -19,6 +19,12 @@ uniform mat3 NormalMatrix;
 
 uniform mat4 model;
 
+uniform float Time;
+uniform float Freq =5;
+uniform float Velocity = 1.5;
+uniform float Amp = 2;
+
+
 void GetCamSpaceValues(out vec3 normal, out vec3 position)
 {
     position = (model * vec4(VertexPosition, 1.0f)).xyz;
@@ -31,6 +37,17 @@ void main()
     TexCoord = VertexTexCoord;
     GetCamSpaceValues(Normal,Position);
 
+    // Water Surface animation
+    if (Time != 0)
+    {
+        float u = Freq*PosRelativeToPerspective.x-Velocity*Time;
+        Position.y = Amp * sin(u);
+        Position.x = Amp * sin(u);
+        vec3 n = vec3(.0);
+        n.xy = normalize(vec2(cos(u), (1.0)));
+        Normal = normalize(VertexNormal);
+    }
+  
 
     // Normal
     vec3 tangent = normalize(vec3(VertexTangent));

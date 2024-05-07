@@ -22,7 +22,9 @@ bool forward = true;
 SceneBasic_Uniform::SceneBasic_Uniform() :
 	tPrev(0),
 	skybox(100.0f),
-	camera()
+	camera(),
+	plane(13.0, 10.0f, 200, 2)
+
 {
 	boat = ObjMesh::load("media/Boat.obj", true);
 	water = ObjMesh::load("media/Low Poly Water.obj", true);
@@ -37,7 +39,7 @@ void SceneBasic_Uniform::initScene()
 		GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_ERROR, GL_DONT_CARE, 0, NULL, GL_TRUE);
 
     compile();
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 	
 
@@ -171,8 +173,8 @@ void SceneBasic_Uniform::update( float t )
 			angle = -1.0f;
 			forward = true;
 		}
-
 	}
+	time = t;
 }
 
 void SceneBasic_Uniform::render()
@@ -273,6 +275,7 @@ void SceneBasic_Uniform::pass1()
 {
 	prog.use();
 	prog.setUniform("Pass", 1);
+
 	glBindFramebuffer(GL_FRAMEBUFFER, fboHandle);
 	glEnable(GL_DEPTH_TEST);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -281,7 +284,7 @@ void SceneBasic_Uniform::pass1()
 	view = glm::lookAt(camera.position, camera.position + camera.Orientation, camera.Up);
 	projection = glm::perspective(glm::radians(60.0f), (float)width / height, 0.3f, 100.0f);
 	// 
-	
+
 	// Sky box
 	skyProg.use();
 	glActiveTexture(GL_TEXTURE0);
@@ -318,7 +321,8 @@ void SceneBasic_Uniform::pass1()
 
 
 	// Water
-
+	prog.use();
+	prog.setUniform("Time", time);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, waterTextureDiffuse);
 
@@ -334,11 +338,12 @@ void SceneBasic_Uniform::pass1()
 	prog.setUniform("Material.Shininess", 0.0f);
 
 	model = mat4(1.0f);
-	model = glm::translate(model, vec3(-5.0f - (25 * waterPos), -0.5f, -5.0f + (4 * waterPos)));
-	
+	model = glm::translate(model, vec3(-5.0f - (25 ), -0.5f, -5.0f + (4)));
+
 	setMatrices(prog);
 
 	water->render();
+	prog.setUniform("Time", 0.0f);
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, 0);

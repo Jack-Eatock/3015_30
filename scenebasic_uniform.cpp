@@ -21,15 +21,19 @@ using glm::mat3;
 bool forward = true;
 
 int numParticles = 5;
-// Starting positions
-vec3 particlePositions[5] = 
-{ 
+
+vec3 particleStartPositions[5] =
+{
 	vec3(10.0f, 2.3f, -6.0),
 	vec3(30.0f, 2.3f, -2.0),
 	vec3(50.0f, 2.3f, -0.0),
 	vec3(65.0f, 2.3f, 4.0),
 	vec3(23.0f, 2.3f, 6.0),
 };
+
+
+// Starting positions
+vec3 particlePositions[5];
 
 float particleSpeeds[5] =
 {
@@ -134,6 +138,8 @@ void SceneBasic_Uniform::initScene()
 	particleProg.setUniform("Gravity", vec3(0.0f, -.4f, .0f));
 	particleProg.setUniform("EmitterPos", emitterPos);
 
+	for (int i = 0; i < numParticles; i++)
+		particlePositions[i] = particleStartPositions[i];
 
 	flatProg.use();
 	flatProg.setUniform("Color", glm::vec4(.4f, .4f, .4f, 1.0f));
@@ -253,8 +259,12 @@ void SceneBasic_Uniform::compile()
 
 void SceneBasic_Uniform::update( float t )
 {
-	if (!running)
+	if (!running) {
+		if (t - timeLost > 1)
+			running = true;
 		return;
+	}
+		
 
 	//update your angle here
 	deltaT = t - tPrev;  // Calculates time since last frame
@@ -499,15 +509,6 @@ void SceneBasic_Uniform::pass1()
 		}
 
 		particlePositions[i] = pos;
-
-
-		// DID WE COLLIDE??
-		if ((abs(pos.x - boatPos.x) < 3.5) && (abs(pos.z - boatPos.z) < 1)) {
-			running = false;
-			std::cout<< "AGG";
-		}
-
-
 		model = glm::translate(model, particlePositions[i]);
 		flatProg.use();
 		setMatrices(flatProg);
@@ -519,6 +520,18 @@ void SceneBasic_Uniform::pass1()
 		glBindVertexArray(particles);
 		glDrawArraysInstanced(GL_TRIANGLES, 0, 6, nParticles);
 		glBindVertexArray(0);
+
+
+		// DID WE COLLIDE??
+		if ((abs(pos.x - boatPos.x) < 3.5) && (abs(pos.z - boatPos.z) < 2)) {
+			running = false;
+			std::cout << "AGG";
+			timeLost = Time;
+			// Reset everything
+			for (int i = 0; i < numParticles; i++)
+				particlePositions[i] = particleStartPositions[i];
+			break;
+		}
 	}
 	glDepthMask(GL_TRUE);
 	glDisable(GL_BLEND);

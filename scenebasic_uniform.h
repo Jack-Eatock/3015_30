@@ -31,7 +31,7 @@ private:
     void pass4();
     float gauss(float,float);
 
-    float Time;
+    float Time; float timeLost;
     bool running = true;
     // Particles
     GLSLProgram flatProg, particleProg;

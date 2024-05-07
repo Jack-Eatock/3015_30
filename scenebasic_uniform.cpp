@@ -23,10 +23,10 @@ SceneBasic_Uniform::SceneBasic_Uniform() :
 	tPrev(0),
 	skybox(100.0f),
 	camera(),
-	particleLifeTime(5.5f),
-	nParticles(8000),
-	emitterPos(1, 0, 0),
-	emitterDir(-1, 2, 0)
+	particleLifeTime(300.0f),
+	nParticles(80000),
+	emitterPos(0, 0, 0),
+	emitterDir(0, 1, 0)
 
 {
 	boat = ObjMesh::load("media/Boat.obj", true);
@@ -105,14 +105,15 @@ void SceneBasic_Uniform::initScene()
 	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 	
+	// Particle properties
 	initBuffers();
 	glActiveTexture(GL_TEXTURE0);
-	Texture::loadTexture("media/particles/bluewater.png");
+	particlesTex = Texture::loadTexture("media/particles/bluewater.png");
 	particleProg.use();
 	particleProg.setUniform("ParticleTex", 0);
 	particleProg.setUniform("ParticleLifeTime", particleLifeTime);
-	particleProg.setUniform("ParticleSize", 0.05f);
-	particleProg.setUniform("Gravity", vec3(0.0f, -.2f, .0f));
+	particleProg.setUniform("ParticleSize", 0.4f);
+	particleProg.setUniform("Gravity", vec3(0.0f, -.4f, .0f));
 	particleProg.setUniform("EmitterPos", emitterPos);
 
 	flatProg.use();
@@ -146,7 +147,7 @@ void SceneBasic_Uniform::initScene()
 	prog.setUniform("Lights[2].AmbientColour", vec3(.1f));
 
 	// Fog
-	prog.setUniform("Fog.MaxDist", 50.0f);
+	prog.setUniform("Fog.MaxDist", 70.0f);
 	prog.setUniform("Fog.MinDist", 1.0f);
 	prog.setUniform("Fog.Color", vec3(.16f, 0.1f, 0.1f));
 
@@ -154,6 +155,7 @@ void SceneBasic_Uniform::initScene()
 	glBindTexture(GL_TEXTURE_2D, boatTexture);
 	setupFBO();
 
+	// Particles
 	GLfloat verts[] = {
 		-1.0f, -1.0f, 0.0f, 1.0f, -1.0f, 0.0f, 1.0f, 1.0f, 0.0f,
 		-1.0f, -1.0f, 0.0f, 1.0f, 1.0f, 0.0f, -1.0f, 1.0f, 0.0f,
@@ -365,12 +367,12 @@ void SceneBasic_Uniform::pass1()
 	glEnable(GL_DEPTH_TEST);
 	glViewport(0, 0, width, height);
 
-	//view = glm::lookAt(camera.position, camera.position + camera.Orientation, camera.Up);
-	//projection = glm::perspective(glm::radians(60.0f), (float)width / height, 0.3f, 100.0f);
+	view = glm::lookAt(camera.position, camera.position + camera.Orientation, camera.Up);
+	projection = glm::perspective(glm::radians(60.0f), (float)width / height, 0.3f, 100.0f);
 
-	vec3 cameraPos(3.0f, 1.5f, 3.0f);
-	view = glm::lookAt(cameraPos, vec3(0.0f, 1.5f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
-	projection = glm::perspective(glm::radians(60.0f), (float)width / height, .03f, 100.0f);
+	//vec3 cameraPos(3.0f, 1.5f, 3.0f);
+	//view = glm::lookAt(cameraPos, vec3(0.0f, 1.5f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
+	//projection = glm::perspective(glm::radians(60.0f), (float)width / height, .03f, 100.0f);
 
 	// Sky box
 	glDisable(GL_DEPTH_TEST);
@@ -384,25 +386,7 @@ void SceneBasic_Uniform::pass1()
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	glEnable(GL_DEPTH_TEST);
 
-	// Particle Effect
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	model = mat4(1.0f);
-	flatProg.use();
-	setMatrices(flatProg);
-	grid.render();
-	glDepthMask(GL_FALSE);
-	
-	particleProg.use();
-	particleProg.setUniform("Time", time);
-	setMatrices(particleProg);
-	glBindVertexArray(particles);
-	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, nParticles);
-	glBindVertexArray(0);
-	glDepthMask(GL_TRUE);
-	glDisable(GL_BLEND);
 
-	particleProg.setUniform("Time", 0.0f);
 
 	// Boat
 	prog.use();
@@ -460,6 +444,71 @@ void SceneBasic_Uniform::pass1()
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
+	// Particle Effect
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, particlesTex);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	model = mat4(1.0f);
+	model = glm::translate(model, vec3(-10.0f - (time * 4), 2.3f, -6.0f));
+	flatProg.use();
+	setMatrices(flatProg);
+	grid.render();
+	glDepthMask(GL_FALSE);
+
+	particleProg.use();
+	particleProg.setUniform("Time", time);
+	setMatrices(particleProg);
+	glBindVertexArray(particles);
+	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, nParticles);
+	glBindVertexArray(0);
+	glDepthMask(GL_TRUE);
+	glDisable(GL_BLEND);
+
+	// Particle Effect
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, particlesTex);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	model = mat4(1.0f);
+	model = glm::translate(model, vec3(5.0f - (time * 4) , 2.3f, 6.0f));
+	flatProg.use();
+	setMatrices(flatProg);
+	grid.render();
+	glDepthMask(GL_FALSE);
+
+	particleProg.use();
+	particleProg.setUniform("Time", time);
+	setMatrices(particleProg);
+	glBindVertexArray(particles);
+	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, nParticles);
+	glBindVertexArray(0);
+	glDepthMask(GL_TRUE);
+	glDisable(GL_BLEND);
+
+	// Particle Effect
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, particlesTex);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	model = mat4(1.0f);
+	model = glm::translate(model, vec3(11.0f - (time * 4), 2.3f, -7.0f));
+	flatProg.use();
+	setMatrices(flatProg);
+	grid.render();
+	glDepthMask(GL_FALSE);
+
+	particleProg.use();
+	particleProg.setUniform("Time", time);
+	setMatrices(particleProg);
+	glBindVertexArray(particles);
+	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, nParticles);
+	glBindVertexArray(0);
+	glDepthMask(GL_TRUE);
+	glDisable(GL_BLEND);
+
+	particleProg.setUniform("Time", 0.0f);
+	prog.use();
 
 }
 

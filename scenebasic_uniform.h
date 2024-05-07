@@ -46,7 +46,7 @@ private:
     std::unique_ptr<ObjMesh> boat, water;
     float tPrev;
     float angle;
-    GLuint boatTexture, mossTexture, waterTextureDiffuse, waterTextureNormal, skyBoxTex;
+    GLuint boatTexture, mossTexture, waterTextureDiffuse, waterTextureNormal, skyBoxTex,particlesTex;
     float waterPos;
     SkyBox skybox;
     CamController camera;

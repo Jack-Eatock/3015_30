@@ -32,7 +32,7 @@ private:
     float gauss(float,float);
 
     float Time;
-
+    bool running = true;
     // Particles
     GLSLProgram flatProg, particleProg;
     Random random;

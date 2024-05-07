@@ -253,6 +253,9 @@ void SceneBasic_Uniform::compile()
 
 void SceneBasic_Uniform::update( float t )
 {
+	if (!running)
+		return;
+
 	//update your angle here
 	deltaT = t - tPrev;  // Calculates time since last frame
 	if (tPrev == 0.0f) deltaT = 0.0f;
@@ -379,6 +382,8 @@ void SceneBasic_Uniform::setupFBO()
 
 void SceneBasic_Uniform::pass1()
 {
+	if (!running)
+		return;
 	prog.use();
 	prog.setUniform("Pass", 1);
 
@@ -471,6 +476,7 @@ void SceneBasic_Uniform::pass1()
 	glBindTexture(GL_TEXTURE_2D, particlesTex);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	vec3 boatPos = vec3(-42.0f, 9.3f, 0.0f + boatPosOffset);
 	for (int i = 0; i < numParticles; i++)
 	{
 		model = mat4(1.0f);
@@ -493,6 +499,15 @@ void SceneBasic_Uniform::pass1()
 		}
 
 		particlePositions[i] = pos;
+
+
+		// DID WE COLLIDE??
+		if ((abs(pos.x - boatPos.x) < 3.5) && (abs(pos.z - boatPos.z) < 1)) {
+			running = false;
+			std::cout<< "AGG";
+		}
+
+
 		model = glm::translate(model, particlePositions[i]);
 		flatProg.use();
 		setMatrices(flatProg);

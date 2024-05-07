@@ -75,6 +75,9 @@
     <ClCompile Include="helper\sphere.cpp">
       <Filter>helper</Filter>
     </ClCompile>
+    <ClCompile Include="helper\grid.cpp">
+      <Filter>helper</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\basic_uniform.frag">
@@ -89,6 +92,14 @@
     <None Include="shader\skybox.frag">
       <Filter>shaders</Filter>
     </None>
+    <None Include="shader\Particles.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\Particles.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\solid.frag" />
+    <None Include="shader\solid.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="helper\scene.h">
@@ -155,6 +166,12 @@
       <Filter>helper</Filter>
     </ClInclude>
     <ClInclude Include="helper\sphere.h">
+      <Filter>helper</Filter>
+    </ClInclude>
+    <ClInclude Include="helper\grid.h">
+      <Filter>helper</Filter>
+    </ClInclude>
+    <ClInclude Include="helper\particleutils.h">
       <Filter>helper</Filter>
     </ClInclude>
   </ItemGroup>

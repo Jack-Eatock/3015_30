@@ -12,7 +12,7 @@ uniform float BlurWeight[5];
 // Edge
 uniform float EdgeThreshold;
 uniform int Pass;
-const vec3 lum = vec3(.7, 0.7, .1);
+const vec3 lum = vec3(.3, 0.3, .0722);
 
 layout (location = 0) out vec4 FragColor;
 layout (binding = 1 ) uniform sampler2D Tex1; // Diffuse

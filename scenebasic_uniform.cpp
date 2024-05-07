@@ -68,7 +68,7 @@ void SceneBasic_Uniform::initScene()
 	prog.setUniform("Lights[2].AmbientColour", vec3(.1f));
 
 	// Fog
-	prog.setUniform("Fog.MaxDist", 19.0f);
+	prog.setUniform("Fog.MaxDist", 50.0f);
 	prog.setUniform("Fog.MinDist", 1.0f);
 	prog.setUniform("Fog.Color", vec3(.16f, 0.1f, 0.1f));
 
@@ -111,12 +111,12 @@ void SceneBasic_Uniform::initScene()
 	prog.setUniform("EdgeThreshold", 0.05f);
 
 	// Blur
-	float weights[5], sum, sigma2 = 8.0f;
+	float weights[5], sum, sigma2 = 3.0f;
 	weights[0] = gauss(0, sigma2);
 	sum = weights[0];
 	for (int i = 0; i < 5; i++) {
 		weights[i] = gauss(float(i), sigma2);
-		sum += 2 * weights[i];
+		sum += 1.5 * weights[i];
 	}
 
 	for (int i = 1; i < 5; i++) {
@@ -179,7 +179,7 @@ void SceneBasic_Uniform::render()
 {
 	pass1();
 
-	glFlush();
+	//glFlush();
 	pass2();
 	pass3();
 	pass4();
@@ -194,13 +194,16 @@ void SceneBasic_Uniform::resize(int w, int h)
 }
 
 
+float boatPosOffset;
+float maxOffset = 7;
 void SceneBasic_Uniform::CameraUpdate(glm::vec3 movement, glm::vec2 mouseMovement)
 {
-	camera.Inputs(movement, mouseMovement);
-
-	//Position += cameraMovement;
-	
-
+	// Move boat
+	boatPosOffset += movement.x * .3f;
+	if (boatPosOffset > maxOffset)
+		boatPosOffset = maxOffset;
+	else if (boatPosOffset < -maxOffset)
+		boatPosOffset = -maxOffset;
 }
 
 void SceneBasic_Uniform::setMatrices(GLSLProgram &p)
@@ -279,9 +282,7 @@ void SceneBasic_Uniform::pass1()
 	projection = glm::perspective(glm::radians(60.0f), (float)width / height, 0.3f, 100.0f);
 	// 
 	
-
 	// Sky box
-
 	skyProg.use();
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skyBoxTex);
@@ -303,7 +304,7 @@ void SceneBasic_Uniform::pass1()
 	prog.setUniform("Material.Shininess", 100.0f);
 
 	model = mat4(1.0f);
-	model = glm::translate(model, vec3(-5.0f, 9.3f, -5.0f));
+	model = glm::translate(model, vec3(-12.0f, 9.3f, -5.0f + boatPosOffset));
 	model = glm::rotate(model, glm::radians(110.0f + (angle * 2.0f)), vec3(0.0f, 1.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(-6.0f + (angle * 4.0f)), vec3(1.0f, 0.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(-.5f + (angle * 1.2f)), vec3(0.0f, 0.0f, 1.0f));

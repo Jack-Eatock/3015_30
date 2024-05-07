@@ -14,6 +14,7 @@ using std::endl;
 #include "helper/glutils.h"
 #include "helper/texture.h"
 
+
 using glm::vec3;
 using glm::vec4;
 using glm::mat4;
@@ -51,6 +52,12 @@ SceneBasic_Uniform::SceneBasic_Uniform() :
 	emitterDir(0, 1, 0)
 
 {
+	soundEngine = createIrrKlangDevice();
+	if (!soundEngine)
+		std::cout << "Error - Sound engine null" << std::endl;
+	soundEngine->play2D("media/Audio/Music.mp3", true);
+
+
 	boat = ObjMesh::load("media/Boat.obj", true);
 	water = ObjMesh::load("media/Low Poly Water.obj", true);
 }
@@ -318,6 +325,7 @@ float boatPosOffset;
 float maxOffset = 6;
 void SceneBasic_Uniform::CameraUpdate(glm::vec3 movement, glm::vec2 mouseMovement)
 {
+	keyboardMovement = movement;
 	// Move boat
 	boatPosOffset += movement.x * .3f;
 	if (boatPosOffset > maxOffset)
@@ -437,8 +445,8 @@ void SceneBasic_Uniform::pass1()
 
 	model = mat4(1.0f);
 	model = glm::translate(model, vec3(-42.0f, 9.3f, 0.0f + boatPosOffset));
-	//model = glm::rotate(model, glm::radians(110.0f + (angle * 2.0f)), vec3(0.0f, 1.0f, 0.0f));
-	model = glm::rotate(model, glm::radians(90.0f + (angle * 1.5f)), vec3(0.0f, 1.0f, 0.0f));
+	//model = glm::rotate(model, glm::radians(110.0f + ), vec3(0.0f, 1.0f, 0.0f));
+	model = glm::rotate(model, glm::radians(90.0f - (keyboardMovement.x * 3) + (angle * 2.0f)), vec3(0.0f, 1.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(-6.0f + (angle * 4.0f)), vec3(1.0f, 0.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(-.5f + (angle * 1.2f)), vec3(0.0f, 0.0f, 1.0f));
 	setMatrices(prog);
@@ -500,9 +508,6 @@ void SceneBasic_Uniform::pass1()
 			int max = 30, min = 5;
 			int val = (rand() % (max - min)) + min;
 			pos.x = val;
-		
-			//max = 6, min = 4;
-			//particleSpeeds[i] = (rand() % (max - min)) + min;
 
 			max = 6, min = -6;
 			particlePositions[i].z = (rand() % (max - min)) + min;
@@ -524,6 +529,9 @@ void SceneBasic_Uniform::pass1()
 
 		// DID WE COLLIDE??
 		if ((abs(pos.x - boatPos.x) < 3.5) && (abs(pos.z - boatPos.z) < 2)) {
+
+			soundEngine->play2D("media/Audio/explosion.wav", false);
+
 			running = false;
 			std::cout << "AGG";
 			timeLost = Time;

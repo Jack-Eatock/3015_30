@@ -11,6 +11,7 @@
 #include <fstream>
 #include <iostream>
 
+
 class SceneRunner {
 private:
     GLFWwindow * window;
@@ -142,32 +143,32 @@ private:
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         {
             camMovement.y += 1;
-            std::cout << "A" << std::endl;
+            //std::cout << "A" << std::endl;
         }
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         {
             camMovement.y -= 1;
-            std::cout << "S" << std::endl;
+            //std::cout << "S" << std::endl;
         }
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         {
             camMovement.x -= 1;
-            std::cout << "A" << std::endl;
+            //std::cout << "A" << std::endl;
         }
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         {
             camMovement.x += 1;
-            std::cout << "D" << std::endl;
+            //std::cout << "D" << std::endl;
         }
         if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         {
             camMovement.z += 1;
-            std::cout << "Up" << std::endl;
+            //std::cout << "Up" << std::endl;
         }
         if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
         {
             camMovement.z -= 1;
-            std::cout << "Down" << std::endl;
+            //std::cout << "Down" << std::endl;
         }
 
         // Mouse inputs

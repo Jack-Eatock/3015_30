@@ -16,6 +16,8 @@
 #include "helper/random.h"
 #include "helper/grid.h"
 #include "helper/particleutils.h"
+#include<irrKlang.h>
+using namespace irrklang;
 
 #include"CamController.h"
 class SceneBasic_Uniform : public Scene
@@ -31,6 +33,8 @@ private:
     void pass4();
     float gauss(float,float);
 
+    ISoundEngine* soundEngine;
+    glm::vec3 keyboardMovement;
     float Time; float timeLost;
     bool running = true;
     // Particles

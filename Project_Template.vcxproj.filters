@@ -100,6 +100,9 @@
     </None>
     <None Include="shader\solid.frag" />
     <None Include="shader\solid.vert" />
+    <None Include="ikpFlac.dll" />
+    <None Include="ikpMP3.dll" />
+    <None Include="irrKlang.dll" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="helper\scene.h">
@@ -174,5 +177,11 @@
     <ClInclude Include="helper\particleutils.h">
       <Filter>helper</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="media\Audio\explosion.wav">
+      <Filter>Resource Files</Filter>
+    </Media>
+    <Media Include="media\Audio\Music.mp3" />
   </ItemGroup>
 </Project>

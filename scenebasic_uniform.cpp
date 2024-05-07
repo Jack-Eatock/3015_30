@@ -101,8 +101,7 @@ void SceneBasic_Uniform::initScene()
 		GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_ERROR, GL_DONT_CARE, 0, NULL, GL_TRUE);
 
     compile();
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 	
@@ -209,6 +208,12 @@ void SceneBasic_Uniform::initScene()
 void SceneBasic_Uniform::compile()
 {
 	try {
+		prog.compileShader("shader/basic_uniform.vert");
+		prog.compileShader("shader/basic_uniform.frag");
+		skyProg.compileShader("shader/skybox.vert");
+		skyProg.compileShader("shader/skybox.frag");
+		skyProg.link();
+		skyProg.use();
 		particleProg.compileShader("shader/Particles.vert");
 		particleProg.compileShader("shader/Particles.frag");
 		particleProg.link();
@@ -216,12 +221,6 @@ void SceneBasic_Uniform::compile()
 		flatProg.compileShader("shader/solid.frag");
 		flatProg.compileShader("shader/solid.vert");
 		flatProg.link();
-		prog.compileShader("shader/basic_uniform.vert");
-		prog.compileShader("shader/basic_uniform.frag");
-		skyProg.compileShader("shader/skybox.vert");
-		skyProg.compileShader("shader/skybox.frag");
-		skyProg.link();
-		skyProg.use();
 		prog.link();
 		prog.use();
 	} catch (GLSLProgramException &e) {
@@ -366,8 +365,12 @@ void SceneBasic_Uniform::pass1()
 	glEnable(GL_DEPTH_TEST);
 	glViewport(0, 0, width, height);
 
-	view = glm::lookAt(camera.position, camera.position + camera.Orientation, camera.Up);
-	projection = glm::perspective(glm::radians(60.0f), (float)width / height, 0.3f, 100.0f);
+	//view = glm::lookAt(camera.position, camera.position + camera.Orientation, camera.Up);
+	//projection = glm::perspective(glm::radians(60.0f), (float)width / height, 0.3f, 100.0f);
+
+	vec3 cameraPos(3.0f, 1.5f, 3.0f);
+	view = glm::lookAt(cameraPos, vec3(0.0f, 1.5f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
+	projection = glm::perspective(glm::radians(60.0f), (float)width / height, .03f, 100.0f);
 
 	// Sky box
 	glDisable(GL_DEPTH_TEST);
@@ -381,22 +384,25 @@ void SceneBasic_Uniform::pass1()
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	glEnable(GL_DEPTH_TEST);
 
-	//// Particle Effect
-	//model = mat4(1.0f);
-	//flatProg.use();
-	//setMatrices(flatProg);
-	//grid.render();
-	//glDepthMask(GL_FALSE);
-	//
-	//particleProg.use();
-	//particleProg.setUniform("Time", time);
-	//setMatrices(particleProg);
-	//glBindVertexArray(particles);
-	//glDrawArraysInstanced(GL_TRIANGLES, 0, 6, nParticles);
-	//glBindVertexArray(0);
-	//glDepthMask(GL_TRUE);
+	// Particle Effect
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	model = mat4(1.0f);
+	flatProg.use();
+	setMatrices(flatProg);
+	grid.render();
+	glDepthMask(GL_FALSE);
+	
+	particleProg.use();
+	particleProg.setUniform("Time", time);
+	setMatrices(particleProg);
+	glBindVertexArray(particles);
+	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, nParticles);
+	glBindVertexArray(0);
+	glDepthMask(GL_TRUE);
+	glDisable(GL_BLEND);
 
-	//particleProg.setUniform("Time", 0);
+	particleProg.setUniform("Time", 0.0f);
 
 	// Boat
 	prog.use();

@@ -13,18 +13,33 @@
 
 ### Controls:
 - A or D to move the ship.
+- If you lose, the game will pause before restarting. 
 
 ### How to run the game:
-Unzip the build.zip file, open up the folder and run the executable "Pirate.exe".
+Unzip the build.zip file, open up the folder and run the executable "ArghAGhost.exe".
 The project will then open in a small window.
 
-##### From the Repo:
+##### From the Git Repo:
  - Firstly download the repository.
- - Within the project, navigate to x64/Debug and run the executable "Pirate.exe"
- - The game should start and you will already be able to interact! 
+ - Within the project, navigate to x64/Debug and run the executable "ArghAGhost.exe"
  
-#### Advanced Features:
- - List item
+### Advanced Features:
+ #### Gaussian Blur 
+Gaussian Blur was used to create a gloomy affect for the game, in an attempt to make the scene appear more spooky. Two extra render passes are added, an intermediete pass and final pass to adjust the blend the pixels colours togehter based on a predefined weighting. The settings for the blur can be tweaked in the "scenebasic_uniform.cpp",  "InitScene()" function.
+
+#### Particle System
+Particle Systems were used to create an interesting visual affect for the Ghost characters in the game. The particle system has its own shaders "Particles.frag" and "Particles.vert". Each individual particle is managed by these shaders, the vertex shader controls their position taking into account their emmiter velocity, direction, gravity and the time passed, and the frag shader applies a colour based on the texture set. These values are all set when the program first initiates, setting the uniforms for the various properties of the particle system and can be adjusted very easily. A Vec3 array stores the positions of all of the particle systems (Ghosts) active in the scene, within the render loop they are moved at a constant rate that is scaled with delta time to keep it frame independant. When the ghosts x coord reaches a certain value they are reset with a slightly random position and speed creating a constant wave of random ghosts.
+
+#### Surface Animation
+Previously to give the impression of waves, the water's mesh was translated at a constant rate which caused interesting lighting affects due to the textures normal map and cartoon shader applied. This isn't performant and can look unimpressive if the user sees where the mesh starts and finishes.  To improve this the mesh is no longer moved, instead the texture is moved using surface animations. This applies the same interesting lighting affects due to the normal map being shifted, but without the cost of moving the entire mesh. This has been implemented in the "basic_uniform_vert" shader, which now takes in time and adjusts the vertex position gradually.
+
+#### Gamification
+
+ - Music and Sound effects using IrrKlang.
+ - Ghosts (that are particles) attack the ship. If they touch the ship, it is destroyed, and the game starts over.
+ - Player can move the ship using WASD to avoid hitting the ghosts.
+ - The ghosts respawn continuously with random positions and speeds, making the game endless.
+ - When the player hits a ghost and loses the other ghosts despawn. The game then waits for about 1 second to show the collision before restarting.
 
 #### Architecture:
 - Skybox rendered in the background using a separate shader and cube map. Using a cube map is more efficient as it avoids having to load 6 individual textures for each face. Also, it is super handy because of how easily it can be sampled using a direction, ideal for a camera.

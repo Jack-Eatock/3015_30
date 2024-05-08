@@ -25,7 +25,7 @@ The project will then open in a small window.
  
 ### Advanced Features:
  #### Gaussian Blur 
-Gaussian Blur was used to create a gloomy affect for the game, in an attempt to make the scene appear more spooky. Two extra render passes are added, an intermediete pass and final pass to adjust the blend the pixels colours togehter based on a predefined weighting. The settings for the blur can be tweaked in the "scenebasic_uniform.cpp",  "InitScene()" function.
+Gaussian Blur was used to create a gloomy affect for the game, in an attempt to make the scene appear more spooky. Two extra render passes were added, one to blur the pixels on the horizontal axis and the second to blur the pixels on the vertical axis. It  is done like this to save on execution time, apply blur to each pixel on both axis in one pass would be increadibly taxing on the CPU. The blur applied to hte pixel is dependant on the settings that are defined in the "scenebasic_uniform.cpp",  "InitScene()" function. 
 
 #### Particle System
 Particle Systems were used to create an interesting visual affect for the Ghost characters in the game. The particle system has its own shaders "Particles.frag" and "Particles.vert". Each individual particle is managed by these shaders, the vertex shader controls their position taking into account their emmiter velocity, direction, gravity and the time passed, and the frag shader applies a colour based on the texture set. These values are all set when the program first initiates, setting the uniforms for the various properties of the particle system and can be adjusted very easily. A Vec3 array stores the positions of all of the particle systems (Ghosts) active in the scene, within the render loop they are moved at a constant rate that is scaled with delta time to keep it frame independant. When the ghosts x coord reaches a certain value they are reset with a slightly random position and speed creating a constant wave of random ghosts.
@@ -63,7 +63,10 @@ Previously to give the impression of waves, the water's mesh was translated at a
 - IrrKlang - Music and Sound effects
 
 ### Video
-You can find the video here: 
+You can find the video here:  https://www.youtube.com/watch?v=_A0EfwX1JLA&ab_channel=JackEatock
+
+### Github
+You can find the github repository here: https://github.com/Jack-Eatock/Argh-a-Ghost
 
 ### External Assets:
 - Skybox: [https://assetstore.unity.com/packages/2d/textures-materials/sky/farland-skies-cloudy-crown-60004](https://assetstore.unity.com/packages/2d/textures-materials/sky/farland-skies-cloudy-crown-60004 "https://assetstore.unity.com/packages/2d/textures-materials/sky/farland-skies-cloudy-crown-60004")

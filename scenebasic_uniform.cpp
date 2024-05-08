@@ -198,7 +198,6 @@ void SceneBasic_Uniform::initScene()
 		1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
 	};
 
-
 	unsigned int handle[2];
 	glGenBuffers(2, handle);
 	glBindBuffer(GL_ARRAY_BUFFER, handle[0]);
@@ -498,10 +497,7 @@ void SceneBasic_Uniform::pass1()
 	for (int i = 0; i < numParticles; i++)
 	{
 		model = mat4(1.0f);
-
-		
 		vec3 pos = vec3(particlePositions[i].x - (deltaT * particleSpeeds[i] ), 2.3f, particlePositions[i].z);
-	
 		srand(time(0));
 	
 		if (pos.x < -55) {
